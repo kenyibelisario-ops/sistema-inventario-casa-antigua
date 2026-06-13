@@ -4,16 +4,15 @@ import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
-# Usamos una clave secreta segura desde las variables de entorno en producción, o una por defecto en local
+# Clave secreta segura desde variables de entorno o una por defecto en local
 app.secret_key = os.environ.get("SECRET_KEY", "clave_secreta_casa_antigua")
 
 # --- CONFIGURACIÓN DINÁMICA DE CONEXIÓN (Localhost vs Nube) ---
 def obtener_conexion():
-    # Render o el proveedor de BD nos dará una variable si estamos en internet
     en_produccion = os.environ.get("DB_HOST")
     
     if en_produccion:
-        # Conexión Segura en la Nube (Producción)
+        # Conexión Segura en la Nube (Producción - Aiven/Render)
         return mysql.connector.connect(
             host=os.environ.get("DB_HOST"),
             user=os.environ.get("DB_USER"),
@@ -30,7 +29,7 @@ def obtener_conexion():
             database="casa_antigua_db"
         )
 
-# --- RUTA PRINCIPAL (CATÁLOGO & DASHBOARD) ---
+# --- RUTA PRINCIPAL (CATÁLOGO, DASHBOARD Y AUTO-CREACIÓN) ---
 @app.route('/')
 def index():
     if 'usuario' not in session:
@@ -42,11 +41,37 @@ def index():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
+    # === SCRIPT DE AUTOMATIZACIÓN DE TABLAS ===
+    # El sistema crea su propia estructura en la nube si no existe para evitar errores 502/500
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS productos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(255) NOT NULL,
+            categoria VARCHAR(255) NOT NULL,
+            precio DECIMAL(10,2) NOT NULL,
+            stock INT NOT NULL,
+            ruta_img TEXT
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ventas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            nombre VARCHAR(255) NOT NULL,
+            cantidad INT NOT NULL,
+            total DECIMAL(10,2) NOT NULL,
+            usuario VARCHAR(255) NOT NULL,
+            fecha DATETIME NOT NULL
+        )
+    """)
+    conexion.commit()  # Asegura los cambios en la base de datos remota
+    # ==========================================
+    
     # 1. Obtener todos los productos para la malla del catálogo
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Hoy)
+    # 2. Flujo de Caja Real (Filtrado por el día de hoy)
     cursor.execute("""
         SELECT SUM(total) FROM ventas 
         WHERE DATE(fecha) = CURDATE()
@@ -74,7 +99,7 @@ def index():
     labels = [row[0] for row in datos_grafico] if datos_grafico else []
     valores = [row[1] for row in datos_grafico] if datos_grafico else []
     
-    # 5. HISTORIAL DE VENTAS PERPETUO
+    # 5. HISTORIAL DE VENTAS PERPETUO (Modal del Administrador)
     cursor.execute("""
         SELECT nombre, cantidad, total, usuario, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') 
         FROM ventas 
@@ -234,6 +259,6 @@ def informe_word():
     return "Generando informe de Word en base a los registros de MySQL... (Módulo de descarga listo)."
 
 if __name__ == '__main__':
-    # Configuración requerida para que el hosting asigne dinámicamente el puerto de red
+    # El puerto asignado dinámicamente permite levantar el servicio en Render sin fallos de bind
     puerto = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=puerto)
