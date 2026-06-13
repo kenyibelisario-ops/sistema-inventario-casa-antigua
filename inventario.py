@@ -12,13 +12,14 @@ def obtener_conexion():
     en_produccion = os.environ.get("DB_HOST")
     
     if en_produccion:
-        # Conexión Segura en la Nube (Producción - Aiven/Render)
+        # Conexión Segura en la Nube (Producción - Con soporte de encriptación moderna)
         return mysql.connector.connect(
             host=os.environ.get("DB_HOST"),
             user=os.environ.get("DB_USER"),
             password=os.environ.get("DB_PASSWORD"),
             database=os.environ.get("DB_NAME"),
-            port=int(os.environ.get("DB_PORT", 3306))
+            port=int(os.environ.get("DB_PORT", 3306)),
+            auth_plugin='mysql_native_password'  # Corrección de plugin de autenticación
         )
     else:
         # Tu configuración local de XAMPP original (Desarrollo)
@@ -42,7 +43,6 @@ def index():
     cursor = conexion.cursor()
     
     # === SCRIPT DE AUTOMATIZACIÓN DE TABLAS ===
-    # El sistema crea su propia estructura en la nube si no existe para evitar errores 502/500
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS productos (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -122,7 +122,7 @@ def index():
         historial_completo=historial_completo
     )
 
-# --- CONTROLADOR DE LOGIN ---
+# --- CONTROLADOR DE LOGIN (AHORA GENÉRICO) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'usuario' in session:
@@ -133,13 +133,13 @@ def login():
         txt_clave = request.form['password'].strip()
         
         if txt_usuario == "admin" and txt_clave == "1234":
-            session['usuario'] = 'Susej Boscariol'
+            session['usuario'] = 'Administrador'  # Nombre genérico para la presentación
             session['rol'] = 'admin'
             flash("Sesión iniciada como Administrador.")
             return redirect(url_for('index'))
             
         elif txt_usuario == "operario" and txt_clave == "5678":
-            session['usuario'] = 'Operario Ventas'
+            session['usuario'] = 'Operario Ventas'  # Nombre genérico para el trabajador
             session['rol'] = 'operario'
             flash("Sesión iniciada como Operario.")
             return redirect(url_for('index'))
@@ -185,80 +185,4 @@ def ajustar_stock(id, operacion):
         return redirect(url_for('login'))
 
     cantidad = int(request.form['cantidad'])
-    usuario_actual = session.get('usuario', 'Sistema')
-    
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    
-    cursor.execute("SELECT nombre, precio, stock FROM productos WHERE id = %s", (id,))
-    producto = cursor.fetchone()
-    
-    if not producto:
-        cursor.close()
-        conexion.close()
-        return "Producto no encontrado", 404
-        
-    nombre_prod, precio_prod, stock_actual = producto
-    
-    if operacion == 'resta':
-        if stock_actual >= cantidad:
-            nuevo_stock = stock_actual - cantidad
-            total_venta = precio_prod * cantidad
-            
-            cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
-            
-            cursor.execute("""
-                INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
-                VALUES (%s, %s, %s, %s, NOW())
-            """, (nombre_prod, cantidad, total_venta, usuario_actual))
-        else:
-            flash("No hay suficiente stock para realizar la venta.")
-            
-    elif operacion == 'suma':
-        if session.get('rol') != 'admin':
-            cursor.close()
-            conexion.close()
-            return "Acceso denegado", 403
-            
-        nuevo_stock = stock_actual + cantidad
-        cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
-            
-    conexion.commit()
-    cursor.close()
-    conexion.close()
-    
-    return redirect(url_for('index'))
-
-# --- ELIMINAR ARTÍCULO DEL CATÁLOGO (ADMIN) ---
-@app.route('/eliminar/<int:id>')
-def eliminar(id):
-    if session.get('rol') != 'admin':
-        return "Acceso denegado", 403
-        
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute("DELETE FROM productos WHERE id = %s", (id,))
-    conexion.commit()
-    cursor.close()
-    conexion.close()
-    
-    return redirect(url_for('index'))
-
-# --- CERRAR SESIÓN ---
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash("Sesión cerrada con éxito. Por favor, inicie sesión otra vez.")
-    return redirect(url_for('login'))
-
-# --- REPORTE (SOLO ADMIN) ---
-@app.route('/informe_word')
-def informe_word():
-    if session.get('rol') != 'admin':
-        return "Acceso denegado", 403
-    return "Generando informe de Word en base a los registros de MySQL... (Módulo de descarga listo)."
-
-if __name__ == '__main__':
-    # El puerto asignado dinámicamente permite levantar el servicio en Render sin fallos de bind
-    puerto = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=puerto)
+    usuario_actual = session.
