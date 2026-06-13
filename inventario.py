@@ -122,7 +122,7 @@ def index():
         historial_completo=historial_completo
     )
 
-# --- CONTROLADOR DE LOGIN (AHORA GENÉRICO) ---
+# --- CONTROLADOR DE LOGIN (GENÉRICO) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'usuario' in session:
@@ -133,7 +133,7 @@ def login():
         txt_clave = request.form['password'].strip()
         
         if txt_usuario == "admin" and txt_clave == "1234":
-            session['usuario'] = 'Administrador'  # Nombre genérico para la presentación
+            session['usuario'] = 'Administrador'  # Nombre genérico para la presentación pública
             session['rol'] = 'admin'
             flash("Sesión iniciada como Administrador.")
             return redirect(url_for('index'))
@@ -185,4 +185,31 @@ def ajustar_stock(id, operacion):
         return redirect(url_for('login'))
 
     cantidad = int(request.form['cantidad'])
-    usuario_actual = session.
+    usuario_actual = session.get('usuario', 'Sistema')
+    
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    
+    cursor.execute("SELECT nombre, precio, stock FROM productos WHERE id = %s", (id,))
+    producto = cursor.fetchone()
+    
+    if not producto:
+        cursor.close()
+        conexion.close()
+        return "Producto no encontrado", 404
+        
+    nombre_prod, precio_prod, stock_actual = producto
+    
+    if operacion == 'resta':
+        if stock_actual >= cantidad:  # Corregido: Variable en español
+            nuevo_stock = stock_actual - cantidad
+            total_venta = precio_prod * cantidad
+            
+            cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
+            
+            cursor.execute("""
+                INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (nombre_prod, cantidad, total_venta, usuario_actual))
+        else:
+            flash
