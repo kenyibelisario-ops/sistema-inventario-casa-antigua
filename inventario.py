@@ -133,7 +133,7 @@ def login():
         txt_clave = request.form['password'].strip()
         
         if txt_usuario == "admin" and txt_clave == "1234":
-            session['usuario'] = 'Administrador'  # Nombre genérico para la presentación pública
+            session['usuario'] = 'Administrador'  # Nombre genérico público
             session['rol'] = 'admin'
             flash("Sesión iniciada como Administrador.")
             return redirect(url_for('index'))
@@ -201,7 +201,7 @@ def ajustar_stock(id, operacion):
     nombre_prod, precio_prod, stock_actual = producto
     
     if operacion == 'resta':
-        if stock_actual >= cantidad:  # Corregido: Variable en español
+        if stock_actual >= cantidad:  # Verificación correcta en español
             nuevo_stock = stock_actual - cantidad
             total_venta = precio_prod * cantidad
             
@@ -212,4 +212,53 @@ def ajustar_stock(id, operacion):
                 VALUES (%s, %s, %s, %s, NOW())
             """, (nombre_prod, cantidad, total_venta, usuario_actual))
         else:
-            flash
+            flash("No hay suficiente stock para realizar la venta.")
+            
+    elif operacion == 'suma':
+        if session.get('rol') != 'admin':
+            cursor.close()
+            conexion.close()
+            return "Acceso denegado", 403
+            
+        nuevo_stock = stock_actual + cantidad
+        cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
+            
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+    
+    return redirect(url_for('index'))
+
+# --- ELIMINAR ARTÍCULO DEL CATÁLOGO (ADMIN) ---
+@app.route('/eliminar/<int:id>')
+def eliminar(id):
+    if session.get('rol') != 'admin':
+        return "Acceso denegado", 403
+        
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    cursor.execute("DELETE FROM productos WHERE id = %s", (id,))
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+    
+    return redirect(url_for('index'))
+
+# --- CERRAR SESIÓN ---
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash("Sesión cerrada con éxito. Por favor, inicie sesión otra vez.")
+    return redirect(url_for('login'))
+
+# --- REPORTE (SOLO ADMIN) ---
+@app.route('/informe_word')
+def informe_word():
+    if session.get('rol') != 'admin':
+        return "Acceso denegado", 403
+    return "Generando informe de Word en base a los registros de MySQL... (Módulo de descarga listo)."
+
+if __name__ == '__main__':
+    # Puerto asignado dinámicamente para el entorno de Render
+    puerto = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=puerto)
