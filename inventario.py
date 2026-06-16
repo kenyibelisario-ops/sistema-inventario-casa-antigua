@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 import mysql.connector
 from datetime import datetime
-from duckduckgo_search import DDGS  # Buscador automático de imágenes
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "clave_secreta_casa_antigua")
@@ -68,7 +67,7 @@ def index():
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Ventas del día, cantidad > 0)
+    # 2. Flujo de Caja Real (Ventas del día)
     cursor.execute("""
         SELECT SUM(total) FROM ventas 
         WHERE DATE(fecha) = CURDATE() AND cantidad > 0
@@ -181,7 +180,7 @@ def login():
             
     return render_template('login.html')
 
-# --- REGISTRAR NUEVO PRODUCTO CON BÚSQUEDA AUTOMÁTICA ---
+# --- REGISTRAR NUEVO PRODUCTO CON URL MANUAL ORIGINAL ---
 @app.route('/guardar', methods=['POST'])
 def guardar():
     if session.get('rol') != 'admin':
@@ -191,17 +190,9 @@ def guardar():
     categoria = request.form['categoria']
     precio = float(request.form['precio'])
     stock = int(request.form['stock'])
+    ruta_img = request.form.get('ruta_img', '').strip()
     
-    # Búsqueda automática en internet mediante DuckDuckGo
-    ruta_img = None
-    try:
-        with DDGS() as ddgs:
-            resultados = ddgs.images(f"{nombre} producto", max_results=1)
-            if resultados:
-                ruta_img = resultados[0]['image']
-    except Exception as e:
-        print(f"Error buscando imagen: {e}")
-        
+    # Si dejas la URL vacía, se le asigna la imagen por defecto como antes
     if not ruta_img:
         ruta_img = "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=500"
         
@@ -281,6 +272,7 @@ def eliminar(id):
         return "Acceso denegado", 403
         
     conexion = obtener_conexion()
+    cursor = conexion.connector.connect() if hasattr(conexion, 'connector') else conexion
     cursor = conexion.cursor()
     cursor.execute("DELETE FROM productos WHERE id = %s", (id,))
     conexion.commit()
@@ -295,13 +287,6 @@ def logout():
     session.clear()
     flash("Sesión cerrada con éxito.")
     return redirect(url_for('login'))
-
-# --- REPORTE ---
-@app.route('/informe_word')
-def informe_word():
-    if session.get('rol') != 'admin':
-        return "Acceso denegado", 403
-    return "Generando informe de Word en base a los registros de MySQL..."
 
 if __name__ == '__main__':
     puerto = int(os.environ.get("PORT", 5000))

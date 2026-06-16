@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Casa Antigua - Panel de Control</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Chart.js para los Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #f8f9fa; }
@@ -17,18 +15,16 @@
 </head>
 <body>
 
-    <!-- BARRA DE NAVEGACIÓN -->
     <nav class="navbar navbar-expand-lg navbar-dark px-4 mb-4">
         <a class="navbar-brand fw-bold" href="#">🏡 Inventario Casa Antigua</a>
         <div class="ms-auto d-flex align-items-center">
-            <span class="text-white me-3">👤 Conectado como: <strong>{{ usuario_actual }}</strong> ({% if rol == 'admin' %}Administrador{% else %}Operario{% endif %})</span>
+            <span class="text-white me-3">👤 Rol: <strong>{% if rol == 'admin' %}Administrador{% else %}Operario{% endif %}</strong></span>
             <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
         </div>
     </nav>
 
     <div class="container-fluid px-4">
         
-        <!-- ALERTAS FLASH (CORREGIDO) -->
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
@@ -40,7 +36,6 @@
           {% endif %}
         {% endwith %}
 
-        <!-- SECCIÓN DE DASHBOARDS (SOLO ADMIN) -->
         {% if rol == 'admin' %}
         <div class="row g-3 mb-4">
             <div class="col-md-3">
@@ -56,7 +51,6 @@
                 </div>
             </div>
             
-            <!-- GRÁFICOS LADO A LADO -->
             <div class="col-md-3">
                 <div class="card p-3 card-dashboard">
                     <h6 class="text-center fw-bold">📉 Ventas Realizadas (Hoy)</h6>
@@ -72,7 +66,6 @@
         </div>
         {% endif %}
 
-        <!-- TABLAS DE MOVIMIENTOS DEL DÍA (EN DOS COLUMNAS) -->
         {% if rol == 'admin' %}
         <div class="row mb-4">
             <div class="col-md-6">
@@ -112,7 +105,6 @@
         </div>
         {% endif %}
 
-        <!-- CATÁLOGO DE PRODUCTOS (GRID PRINCIPAL) -->
         <h4 class="fw-bold mb-3">📦 Catálogo de Productos en Inventario</h4>
         <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
             {% for producto in productos %}
@@ -129,7 +121,6 @@
                                 <span class="badge {% if producto[4] > 5 %}bg-success{% else %}bg-danger{% endif %} fs-6">{{ producto[4] }} unds</span>
                             </p>
                             
-                            <!-- AJUSTADOR DE STOCK -->
                             <div class="d-flex gap-1">
                                 <form action="/ajustar_stock/{{ producto[0] }}/resta" method="POST" class="d-flex w-100 gap-1">
                                     <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm" style="width: 60px;">
@@ -153,24 +144,22 @@
         </div>
     </div>
 
-    <!-- MODAL REGISTRAR PRODUCTO -->
     <div class="modal fade" id="modalGuardar" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog">
         <form action="/guardar" method="POST" class="modal-content">
-          <div class="modal-header"><h5 class="modal-title">Agregar Producto</h5><button type="button" class="btn-close" data-bs-shadow="modal" data-bs-dismiss="modal"></button></div>
+          <div class="modal-header"><h5 class="modal-title">Agregar Producto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
           <div class="modal-body">
-            <div class="mb-3"><label class="form-label">Nombre</label><input type="text" name="nombre" class="form-control" required></div>
+            <div class="mb-3"><label class="form-label">Nombre del Producto</label><input type="text" name="nombre" class="form-control" required></div>
             <div class="mb-3"><label class="form-label">Categoría</label><input type="text" name="categoria" class="form-control" required></div>
             <div class="mb-3"><label class="form-label">Precio</label><input type="number" step="0.01" name="precio" class="form-control" required></div>
             <div class="mb-3"><label class="form-label">Stock Inicial</label><input type="number" name="stock" class="form-control" required></div>
-            <div class="mb-3"><label class="form-label">URL Imagen (Opcional)</label><input type="url" name="ruta_img" class="form-control"></div>
+            <div class="mb-3"><label class="form-label">URL de la Imagen (Opcional)</label><input type="url" name="ruta_img" class="form-control" placeholder="https://ejemplo.com/imagen.jpg"></div>
           </div>
-          <div class="modal-footer"><button type="submit" class="btn btn-success">Guardar</button></div>
+          <div class="modal-footer"><button type="submit" class="btn btn-success">Guardar Producto</button></div>
         </form>
       </div>
     </div>
 
-    <!-- MODAL HISTORIAL PERPETUO -->
     <div class="modal fade" id="modalHistorialGlobal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -207,12 +196,10 @@
       </div>
     </div>
 
-    <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- CONTROLADORES JAVASCRIPT DE LOS DOS GRÁFICOS -->
     <script>
-        // 1. Gráfico de Ventas (Salidas)
+        // 1. Gráfico de Ventas
         var ctxVentas = document.getElementById('myChart').getContext('2d');
         new Chart(ctxVentas, {
             type: 'bar',
@@ -229,7 +216,7 @@
             options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
 
-        // 2. Gráfico de Abastecimiento (Entradas)
+        // 2. Gráfico de Abastecimiento
         var ctxEntradas = document.getElementById('chartEntradas').getContext('2d');
         new Chart(ctxEntradas, {
             type: 'doughnut',
