@@ -4,25 +4,22 @@ import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
-# Clave secreta segura desde variables de entorno o una por defecto en local
 app.secret_key = os.environ.get("SECRET_KEY", "clave_secreta_casa_antigua")
 
-# --- CONFIGURACIÓN DINÁMICA DE CONEXIÓN (Localhost vs Nube) ---
+# --- CONFIGURACIÓN DINÁMICA DE CONEXIÓN (Mantenida intacta) ---
 def obtener_conexion():
     en_produccion = os.environ.get("DB_HOST")
     
     if en_produccion:
-        # Conexión Segura en la Nube (Producción - Con soporte de encriptación moderna)
         return mysql.connector.connect(
             host=os.environ.get("DB_HOST"),
             user=os.environ.get("DB_USER"),
             password=os.environ.get("DB_PASSWORD"),
             database=os.environ.get("DB_NAME"),
             port=int(os.environ.get("DB_PORT", 3306)),
-            auth_plugin='mysql_native_password'  # Corrección de plugin de autenticación
+            auth_plugin='mysql_native_password'
         )
     else:
-        # Tu configuración local de XAMPP original (Desarrollo)
         return mysql.connector.connect(
             host="localhost",
             user="root",
@@ -30,7 +27,7 @@ def obtener_conexion():
             database="casa_antigua_db"
         )
 
-# --- RUTA PRINCIPAL (CATÁLOGO, DASHBOARD Y AUTO-CREACIÓN) ---
+# --- RUTA PRINCIPAL (CATÁLOGO, DASHBOARDS Y AUDITORÍAS) ---
 @app.route('/')
 def index():
     if 'usuario' not in session:
@@ -64,48 +61,77 @@ def index():
             fecha DATETIME NOT NULL
         )
     """)
-    conexion.commit()  # Asegura los cambios en la base de datos remota
-    # ==========================================
+    conexion.commit()
     
-    # 1. Obtener todos los productos para la malla del catálogo
+    # 1. Obtener catálogo de productos
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Filtrado por el día de hoy)
+    # 2. Flujo de Caja Real (Solo sumas de ventas reales del día, cantidad > 0)
     cursor.execute("""
         SELECT SUM(total) FROM ventas 
-        WHERE DATE(fecha) = CURDATE()
+        WHERE DATE(fecha) = CURDATE() AND cantidad > 0
     """)
     resultado_caja = cursor.fetchone()[0]
     total_dia = float(resultado_caja) if resultado_caja is not None else 0.0
     
-    # 3. Auditoría de Ventas del Día
+    # 3. Auditoría de Ventas del Día (Salidas)
     cursor.execute("""
         SELECT nombre, cantidad, total, usuario 
         FROM ventas 
-        WHERE DATE(fecha) = CURDATE() 
+        WHERE DATE(fecha) = CURDATE() AND cantidad > 0
         ORDER BY id DESC
     """)
     ventas_hoy = cursor.fetchall()
     
-    # 4. Datos del Gráfico Estadístico
+    # 4. Auditoría de Entradas de Stock del Día (Cantidades negativas convertidas a positivas para mostrar)
+    cursor.execute("""
+        SELECT nombre, ABS(cantidad), usuario, DATE_FORMAT(fecha, '%H:%i')
+        FROM ventas 
+        WHERE DATE(fecha) = CURDATE() AND cantidad < 0
+        ORDER BY id DESC
+    """)
+    entradas_hoy = cursor.fetchall()
+    
+    # 5. Datos del Gráfico Estadístico de Ventas (Salidas)
     cursor.execute("""
         SELECT nombre, SUM(cantidad) 
         FROM ventas 
-        WHERE DATE(fecha) = CURDATE() 
+        WHERE DATE(fecha) = CURDATE() AND cantidad > 0
         GROUP BY nombre
     """)
     datos_grafico = cursor.fetchall()
     labels = [row[0] for row in datos_grafico] if datos_grafico else []
     valores = [row[1] for row in datos_grafico] if datos_grafico else []
     
-    # 5. HISTORIAL DE VENTAS PERPETUO (Modal del Administrador)
+    # 6. Datos del Gráfico Estadístico de Entradas (Abastecimiento)
+    cursor.execute("""
+        SELECT nombre, SUM(ABS(cantidad)) 
+        FROM ventas 
+        WHERE DATE(fecha) = CURDATE() AND cantidad < 0
+        GROUP BY nombre
+    """)
+    datos_entradas = cursor.fetchall()
+    labels_entradas = [row[0] for row in datos_entradas] if datos_entradas else []
+    valores_entradas = [row[1] for row in datos_entradas] if datos_entradas else []
+    
+    # 7. Historial de Ventas Perpetuo (Salidas globales)
     cursor.execute("""
         SELECT nombre, cantidad, total, usuario, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') 
         FROM ventas 
+        WHERE cantidad > 0
         ORDER BY id DESC
     """)
     historial_completo = cursor.fetchall()
+    
+    # 8. Historial Perpetuo de Entradas
+    cursor.execute("""
+        SELECT nombre, ABS(cantidad), usuario, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') 
+        FROM ventas 
+        WHERE cantidad < 0
+        ORDER BY id DESC
+    """)
+    historial_entradas_perpetuo = cursor.fetchall()
     
     cursor.close()
     conexion.close()
@@ -117,12 +143,16 @@ def index():
         productos=productos,
         total_dia=total_dia,
         ventas_hoy=ventas_hoy,
+        entradas_hoy=entradas_hoy,
         labels=labels,
         valores=valores,
-        historial_completo=historial_completo
+        labels_entradas=labels_entradas,
+        valores_entradas=valores_entradas,
+        historial_completo=historial_completo,
+        historial_entradas_perpetuo=historial_entradas_perpetuo
     )
 
-# --- CONTROLADOR DE LOGIN (GENÉRICO) ---
+# --- CONTROLADOR DE LOGIN (Limpio y Seguro) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'usuario' in session:
@@ -133,13 +163,13 @@ def login():
         txt_clave = request.form['password'].strip()
         
         if txt_usuario == "admin" and txt_clave == "1234":
-            session['usuario'] = 'Administrador'  # Nombre genérico público
+            session['usuario'] = 'Administrador'
             session['rol'] = 'admin'
             flash("Sesión iniciada como Administrador.")
             return redirect(url_for('index'))
             
         elif txt_usuario == "operario" and txt_clave == "5678":
-            session['usuario'] = 'Operario Ventas'  # Nombre genérico para el trabajador
+            session['usuario'] = 'Operario Ventas'
             session['rol'] = 'operario'
             flash("Sesión iniciada como Operario.")
             return redirect(url_for('index'))
@@ -150,7 +180,7 @@ def login():
             
     return render_template('login.html')
 
-# --- REGISTRAR NUEVO PRODUCTO EN INVENTARIO (ADMIN) ---
+# --- REGISTRAR NUEVO PRODUCTO (ADMIN) ---
 @app.route('/guardar', methods=['POST'])
 def guardar():
     if session.get('rol') != 'admin':
@@ -178,7 +208,7 @@ def guardar():
     
     return redirect(url_for('index'))
 
-# --- AJUSTAR STOCK (REGISTRAR VENTA / INCREMENTAR STOCK) ---
+# --- AJUSTAR STOCK (ENTRADAS Y SALIDAS AUDITADAS) ---
 @app.route('/ajustar_stock/<int:id>/<string:operacion>', methods=['POST'])
 def ajustar_stock(id, operacion):
     if 'usuario' not in session:
@@ -201,12 +231,11 @@ def ajustar_stock(id, operacion):
     nombre_prod, precio_prod, stock_actual = producto
     
     if operacion == 'resta':
-        if stock_actual >= cantidad:  # Verificación correcta en español
+        if stock_actual >= cantidad:
             nuevo_stock = stock_actual - cantidad
             total_venta = precio_prod * cantidad
             
             cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
-            
             cursor.execute("""
                 INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
                 VALUES (%s, %s, %s, %s, NOW())
@@ -221,7 +250,13 @@ def ajustar_stock(id, operacion):
             return "Acceso denegado", 403
             
         nuevo_stock = stock_actual + cantidad
+        cantidad_entrada = -cantidad # Valor negativo para identificar entrada
+        
         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
+        cursor.execute("""
+            INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
+            VALUES (%s, %s, 0.00, %s, NOW())
+        """, (nombre_prod, cantidad_entrada, usuario_actual))
             
     conexion.commit()
     cursor.close()
@@ -229,7 +264,7 @@ def ajustar_stock(id, operacion):
     
     return redirect(url_for('index'))
 
-# --- ELIMINAR ARTÍCULO DEL CATÁLOGO (ADMIN) ---
+# --- ELIMINAR ARTÍCULO ---
 @app.route('/eliminar/<int:id>')
 def eliminar(id):
     if session.get('rol') != 'admin':
@@ -248,17 +283,16 @@ def eliminar(id):
 @app.route('/logout')
 def logout():
     session.clear()
-    flash("Sesión cerrada con éxito. Por favor, inicie sesión otra vez.")
+    flash("Sesión cerrada con éxito.")
     return redirect(url_for('login'))
 
-# --- REPORTE (SOLO ADMIN) ---
+# --- REPORTE ---
 @app.route('/informe_word')
 def informe_word():
     if session.get('rol') != 'admin':
         return "Acceso denegado", 403
-    return "Generando informe de Word en base a los registros de MySQL... (Módulo de descarga listo)."
+    return "Generando informe de Word en base a los registros de MySQL..."
 
 if __name__ == '__main__':
-    # Puerto asignado dinámicamente para el entorno de Render
     puerto = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=puerto)
