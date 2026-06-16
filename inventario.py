@@ -35,7 +35,7 @@ def index():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
-    # Asegurar tablas base
+    # Asegurar tablas base comerciales
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS productos (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,21 +62,22 @@ def index():
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Hoy)
+    # 2. Flujo de Caja Real (Hoy) - Solo contabiliza salidas/ventas reales
     cursor.execute("SELECT SUM(total) FROM ventas WHERE DATE(fecha) = CURDATE() AND cantidad > 0")
     resultado_caja = cursor.fetchone()[0]
     total_dia = float(resultado_caja) if resultado_caja is not None else 0.0
     
-    # 3. Auditoría de Ventas del Día
+    # 3. Auditoría Unificada (Ventas e Incrementos de Stock del Día)
     cursor.execute("""
-        SELECT nombre, cantidad, total, usuario 
+        SELECT nombre, cantidad, total, usuario, 
+               CASE WHEN cantidad > 0 THEN 'VENTA' ELSE 'STOCK_ADD' END as tipo_operacion
         FROM ventas 
-        WHERE DATE(fecha) = CURDATE() AND cantidad > 0
+        WHERE DATE(fecha) = CURDATE()
         ORDER BY id DESC
     """)
     ventas_hoy = cursor.fetchall()
     
-    # 4. Datos para el Gráfico Circular (Volumen de Productos Vendidos)
+    # 4. Datos para el Gráfico Circular (Volumen de Ventas Reales)
     cursor.execute("""
         SELECT nombre, SUM(cantidad) 
         FROM ventas 
@@ -167,6 +168,11 @@ def ajustar_stock(id, operacion):
         elif operacion == 'suma':
             nuevo_stock = stock_actual + cantidad
             cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
+            # Guardamos el ingreso guardando la cantidad como negativa para diferenciarla internamente sin romper el flujo de caja
+            cursor.execute("""
+                INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (nombre_prod, -cantidad, 0.00, usuario_actual))
             
         conexion.commit()
         
