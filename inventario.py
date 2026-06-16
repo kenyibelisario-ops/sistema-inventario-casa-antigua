@@ -2,11 +2,12 @@ import os
 from flask import Flask, render_template, request, redirect, session, url_for, flash
 import mysql.connector
 from datetime import datetime
+from duckduckgo_search import DDGS  # Buscador automático de imágenes
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "clave_secreta_casa_antigua")
 
-# --- CONFIGURACIÓN DINÁMICA DE CONEXIÓN (Mantenida intacta) ---
+# --- CONFIGURACIÓN DINÁMICA DE CONEXIÓN ---
 def obtener_conexion():
     en_produccion = os.environ.get("DB_HOST")
     
@@ -27,7 +28,7 @@ def obtener_conexion():
             database="casa_antigua_db"
         )
 
-# --- RUTA PRINCIPAL (CATÁLOGO, DASHBOARDS Y AUDITORÍAS) ---
+# --- RUTA PRINCIPAL (CATÁLOGO Y LOGICA COMPLETA) ---
 @app.route('/')
 def index():
     if 'usuario' not in session:
@@ -67,7 +68,7 @@ def index():
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Solo sumas de ventas reales del día, cantidad > 0)
+    # 2. Flujo de Caja Real (Ventas del día, cantidad > 0)
     cursor.execute("""
         SELECT SUM(total) FROM ventas 
         WHERE DATE(fecha) = CURDATE() AND cantidad > 0
@@ -84,7 +85,7 @@ def index():
     """)
     ventas_hoy = cursor.fetchall()
     
-    # 4. Auditoría de Entradas de Stock del Día (Cantidades negativas convertidas a positivas para mostrar)
+    # 4. Auditoría de Entradas de Stock del Día
     cursor.execute("""
         SELECT nombre, ABS(cantidad), usuario, DATE_FORMAT(fecha, '%H:%i')
         FROM ventas 
@@ -93,7 +94,7 @@ def index():
     """)
     entradas_hoy = cursor.fetchall()
     
-    # 5. Datos del Gráfico Estadístico de Ventas (Salidas)
+    # 5. Datos del Gráfico Estadístico de Ventas
     cursor.execute("""
         SELECT nombre, SUM(cantidad) 
         FROM ventas 
@@ -104,7 +105,7 @@ def index():
     labels = [row[0] for row in datos_grafico] if datos_grafico else []
     valores = [row[1] for row in datos_grafico] if datos_grafico else []
     
-    # 6. Datos del Gráfico Estadístico de Entradas (Abastecimiento)
+    # 6. Datos del Gráfico Estadístico de Entradas
     cursor.execute("""
         SELECT nombre, SUM(ABS(cantidad)) 
         FROM ventas 
@@ -115,7 +116,7 @@ def index():
     labels_entradas = [row[0] for row in datos_entradas] if datos_entradas else []
     valores_entradas = [row[1] for row in datos_entradas] if datos_entradas else []
     
-    # 7. Historial de Ventas Perpetuo (Salidas globales)
+    # 7. Historial de Ventas Perpetuo
     cursor.execute("""
         SELECT nombre, cantidad, total, usuario, DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') 
         FROM ventas 
@@ -152,7 +153,7 @@ def index():
         historial_entradas_perpetuo=historial_entradas_perpetuo
     )
 
-# --- CONTROLADOR DE LOGIN (Limpio y Seguro) ---
+# --- CONTROLADOR DE LOGIN ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if 'usuario' in session:
@@ -180,7 +181,7 @@ def login():
             
     return render_template('login.html')
 
-# --- REGISTRAR NUEVO PRODUCTO (ADMIN) ---
+# --- REGISTRAR NUEVO PRODUCTO CON BÚSQUEDA AUTOMÁTICA ---
 @app.route('/guardar', methods=['POST'])
 def guardar():
     if session.get('rol') != 'admin':
@@ -190,8 +191,17 @@ def guardar():
     categoria = request.form['categoria']
     precio = float(request.form['precio'])
     stock = int(request.form['stock'])
-    ruta_img = request.form['ruta_img']
     
+    # Búsqueda automática en internet mediante DuckDuckGo
+    ruta_img = None
+    try:
+        with DDGS() as ddgs:
+            resultados = ddgs.images(f"{nombre} producto", max_results=1)
+            if resultados:
+                ruta_img = resultados[0]['image']
+    except Exception as e:
+        print(f"Error buscando imagen: {e}")
+        
     if not ruta_img:
         ruta_img = "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=500"
         
@@ -208,7 +218,7 @@ def guardar():
     
     return redirect(url_for('index'))
 
-# --- AJUSTAR STOCK (ENTRADAS Y SALIDAS AUDITADAS) ---
+# --- AJUSTAR STOCK (ENTRADAS Y SALIDAS) ---
 @app.route('/ajustar_stock/<int:id>/<string:operacion>', methods=['POST'])
 def ajustar_stock(id, operacion):
     if 'usuario' not in session:
@@ -250,7 +260,7 @@ def ajustar_stock(id, operacion):
             return "Acceso denegado", 403
             
         nuevo_stock = stock_actual + cantidad
-        cantidad_entrada = -cantidad # Valor negativo para identificar entrada
+        cantidad_entrada = -cantidad 
         
         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
         cursor.execute("""
