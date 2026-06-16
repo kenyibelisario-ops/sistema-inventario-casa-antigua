@@ -48,10 +48,15 @@
         .btn-stock-add { background-color: #0a1128; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; }
         .btn-eliminar-cat { color: #ef4444; background: none; border: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-decoration: none; display: block; text-align: center; margin-top: 10px; }
 
-        /* Contenedor de Auditoría */
-        .audit-container { max-height: 250px; overflow-y: auto; background-color: #f1f5f9; border-radius: 10px; padding: 10px; border: 1px solid #cbd5e1; }
+        /* Contenedor de Auditoría e Historial */
+        .audit-container { max-height: 300px; overflow-y: auto; background-color: #f1f5f9; border-radius: 10px; padding: 10px; border: 1px solid #cbd5e1; }
         .audit-item { border-bottom: 1px solid #e2e8f0; padding: 8px 5px; font-size: 0.85rem; color: #334155; }
         .audit-item:last-child { border-bottom: none; }
+
+        /* Selectores superiores de historial (Pestañas limpias) */
+        .nav-tabs-custom { display: flex; border-bottom: 2px solid #cbd5e1; margin-bottom: 15px; gap: 10px; }
+        .tab-button { background: none; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-button.active { color: #0a1128; border-bottom: 2px solid #0a1128; }
     </style>
 </head>
 <body>
@@ -167,30 +172,64 @@
                 </div>
 
                 <div class="panel-derecho">
-                    <span class="form-label-custom d-block text-muted mb-3" style="font-size: 0.75rem;">Auditoría de Actividad (Hoy)</span>
-                    <div class="audit-container">
-                        {% if ventas_hoy %}
-                            {% for registro in ventas_hoy %}
-                            <div class="audit-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong class="d-block text-dark">{{ registro[0] }}</strong>
+                    <div class="nav-tabs-custom">
+                        <button class="tab-button active" onclick="cambiarTab('hoy')">Actividad Hoy</button>
+                        <button class="tab-button" onclick="cambiarTab('permanente')">Historial Permanente</button>
+                    </div>
+
+                    <div id="panelHoy">
+                        <div class="audit-container">
+                            {% if ventas_hoy %}
+                                {% for registro in ventas_hoy %}
+                                <div class="audit-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="d-block text-dark">{{ registro[0] }} <span class="text-muted fw-normal" style="font-size:0.75rem;">({{ registro[5] }})</span></strong>
+                                        {% if registro[4] == 'VENTA' %}
+                                            <span class="text-muted small">Cant: {{ registro[1] }} | Por: {{ registro[3] }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">📦 Stock Añadido: {{ registro[1]|abs }} | Por: {{ registro[3] }}</span>
+                                        {% endif %}
+                                    </div>
                                     {% if registro[4] == 'VENTA' %}
-                                        <span class="text-muted small">Cant: {{ registro[1] }} | Por: {{ registro[3] }}</span>
+                                        <span class="text-success fw-bold">+${{ "%.2f"|format(registro[2]) }}</span>
                                     {% else %}
-                                        <span class="text-muted small">📦 Stock Añadido: {{ registro[1]|abs }} | Por: {{ registro[3] }}</span>
+                                        <span class="text-primary fw-bold" style="font-size: 0.8rem;">+{{ registro[1]|abs }} u.</span>
                                     {% endif %}
                                 </div>
-                                {% if registro[4] == 'VENTA' %}
-                                    <span class="text-success fw-bold">+${{ "%.2f"|format(registro[2]) }}</span>
-                                {% else %}
-                                    <span class="text-primary fw-bold" style="font-size: 0.8rem;">+{{ registro[1]|abs }} u.</span>
-                                {% endif %}
-                            </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-muted text-center small py-3">No hay movimientos registrados hoy.</div>
-                        {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-muted text-center small py-3">No hay movimientos registrados hoy.</div>
+                            {% endif %}
+                        </div>
                     </div>
+
+                    <div id="panelPermanente" style="display: none;">
+                        <div class="audit-container">
+                            {% if historial_permanente %}
+                                {% for registro in historial_permanente %}
+                                <div class="audit-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong class="d-block text-dark">{{ registro[0] }}</strong>
+                                        <span class="text-muted d-block" style="font-size: 0.7rem; color: #64748b !important;">🗓️ {{ registro[5] }}</span>
+                                        {% if registro[4] == 'VENTA' %}
+                                            <span class="text-muted small">Cant: {{ registro[1] }} | Por: {{ registro[3] }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">📦 Entrada: {{ registro[1]|abs }} u. | Por: {{ registro[3] }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if registro[4] == 'VENTA' %}
+                                        <span class="text-success fw-bold">+${{ "%.2f"|format(registro[2]) }}</span>
+                                    {% else %}
+                                        <span class="text-primary fw-bold" style="font-size: 0.8rem;">+{{ registro[1]|abs }} u.</span>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-muted text-center small py-3">El registro histórico de ventas está vacío.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -198,6 +237,27 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function cambiarTab(tipo) {
+            let btnHoy = document.querySelectorAll('.tab-button')[0];
+            let btnPerm = document.querySelectorAll('.tab-button')[1];
+            let panelHoy = document.getElementById('panelHoy');
+            let panelPerm = document.getElementById('panelPermanente');
+
+            if (tipo === 'hoy') {
+                btnHoy.classList.add('active');
+                btnPerm.classList.remove('active');
+                panelHoy.style.display = 'block';
+                panelPerm.style.display = 'none';
+            } else {
+                btnHoy.classList.remove('active');
+                btnPerm.classList.add('active');
+                panelHoy.style.display = 'none';
+                panelPerm.style.display = 'block';
+            }
+        }
+    </script>
 
     <script>
         document.getElementById('inputBuscador').addEventListener('input', function(e) {

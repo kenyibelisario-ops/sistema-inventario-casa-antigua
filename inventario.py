@@ -62,22 +62,33 @@ def index():
     cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos")
     productos = cursor.fetchall()
     
-    # 2. Flujo de Caja Real (Hoy) - Solo contabiliza salidas/ventas reales
+    # 2. Flujo de Caja Real (Hoy) - Solo contabiliza salidas/ventas reales de hoy
     cursor.execute("SELECT SUM(total) FROM ventas WHERE DATE(fecha) = CURDATE() AND cantidad > 0")
     resultado_caja = cursor.fetchone()[0]
     total_dia = float(resultado_caja) if resultado_caja is not None else 0.0
     
-    # 3. Auditoría Unificada (Ventas e Incrementos de Stock del Día)
+    # 3. Auditoría Unificada del Día (Hoy)
     cursor.execute("""
         SELECT nombre, cantidad, total, usuario, 
-               CASE WHEN cantidad > 0 THEN 'VENTA' ELSE 'STOCK_ADD' END as tipo_operacion
+               CASE WHEN cantidad > 0 THEN 'VENTA' ELSE 'STOCK_ADD' END as tipo_operacion,
+               DATE_FORMAT(fecha, '%H:%i') as hora
         FROM ventas 
         WHERE DATE(fecha) = CURDATE()
         ORDER BY id DESC
     """)
     ventas_hoy = cursor.fetchall()
+
+    # 4. Historial Permanente Completo (Todas las fechas)
+    cursor.execute("""
+        SELECT nombre, cantidad, total, usuario, 
+               CASE WHEN cantidad > 0 THEN 'VENTA' ELSE 'STOCK_ADD' END as tipo_operacion,
+               DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') as fecha_formateada
+        FROM ventas 
+        ORDER BY id DESC
+    """)
+    historial_permanente = cursor.fetchall()
     
-    # 4. Datos para el Gráfico Circular (Volumen de Ventas Reales)
+    # 5. Datos para el Gráfico Circular (Volumen de Ventas Reales del Día)
     cursor.execute("""
         SELECT nombre, SUM(cantidad) 
         FROM ventas 
@@ -97,6 +108,7 @@ def index():
         productos=productos, 
         total_dia=total_dia, 
         ventas_hoy=ventas_hoy,
+        historial_permanente=historial_permanente,
         labels=labels,
         valores=valores
     )
@@ -168,7 +180,7 @@ def ajustar_stock(id, operacion):
         elif operacion == 'suma':
             nuevo_stock = stock_actual + cantidad
             cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
-            # Guardamos el ingreso guardando la cantidad como negativa para diferenciarla internamente sin romper el flujo de caja
+            # Guardamos la cantidad como negativa internamente para el historial de stock sin afectar sumatorias de caja
             cursor.execute("""
                 INSERT INTO ventas (nombre, cantidad, total, usuario, fecha) 
                 VALUES (%s, %s, %s, %s, NOW())
