@@ -3,234 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Casa Antigua - Panel de Control</title>
+    <title>Sistema de Gestión - Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
-        .navbar { background-color: #2c3e50; }
-        .card-dashboard { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .product-img { height: 180px; object-fit: cover; border-top-left-radius: 10px; border-top-right-radius: 10px; }
+        body { background-color: #b0c4de; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Navbar superior negra con textos originales */
+        .navbar-custom { background-color: #0b0b0b; padding: 12px 30px; }
+        .navbar-brand-custom { color: #f3a847 !important; font-weight: bold; font-size: 1.4rem; letter-spacing: 1px; text-transform: uppercase; }
+        .nav-link-sub { color: #5271ff !important; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-left: 15px; text-decoration: none; }
+        .rol-text { color: #f3a847; font-weight: bold; font-size: 0.9rem; margin-right: 15px; text-transform: uppercase; }
+        .btn-logout { background-color: #dc3545; color: white; border-radius: 8px; font-weight: bold; font-size: 0.9rem; padding: 6px 15px; border: none; }
+
+        /* Paneles con el tono gris claro de tus capturas */
+        .panel-central { background-color: #e9ecef; border-radius: 20px; padding: 25px; border: 1px solid #dee2e6; }
+        .panel-derecho { background-color: #e9ecef; border-radius: 20px; padding: 20px; border: 1px solid #dee2e6; }
+        
+        .panel-title { font-weight: bold; color: #1e293b; font-size: 1.3rem; }
+        .panel-subtitle { color: #64748b; font-size: 0.85rem; margin-bottom: 20px; }
+
+        .form-label-custom { font-size: 0.8rem; font-weight: bold; color: #334155; text-transform: uppercase; margin-bottom: 5px; }
+        .form-control-custom { background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; font-size: 0.9rem; color: #334155; }
+        .form-control-custom::placeholder { color: #94a3b8; }
+
+        /* Botón de publicación largo original */
+        .btn-publicar { background-color: #0a1128; color: #f3a847; border: none; border-radius: 8px; width: 100%; padding: 12px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; }
+        .btn-publicar:hover { background-color: #111a36; }
+
+        /* Barra de búsqueda superior */
+        .search-container { background-color: #e9ecef; border-radius: 12px; padding: 12px 20px; border: 1px solid #dee2e6; width: 100%; margin-bottom: 25px; }
+
+        /* Tarjetas de Productos */
+        .card-producto { background-color: #e9ecef; border: 1px solid #dee2e6; border-radius: 15px; padding: 15px; height: 100%; }
+        .img-container { background-color: #fff; border-radius: 10px; overflow: hidden; height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
+        .badge-categoria { background-color: #94a3b8; color: white; font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 5px; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
+        .prod-title { font-weight: bold; color: #1e293b; font-size: 1.1rem; margin-bottom: 2px; }
+        .prod-price { font-weight: bold; color: #0f172a; font-size: 1.25rem; margin-bottom: 2px; }
+        .prod-stock { color: #475569; font-size: 0.85rem; margin-bottom: 15px; }
+
+        /* Botones de acción de las tarjetas */
+        .btn-venta { background-color: #007f5f; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; }
+        .btn-stock-add { background-color: #0a1128; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; }
+        .btn-eliminar-cat { color: #ef4444; background: none; border: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-decoration: none; display: block; text-align: center; margin-top: 10px; }
+
+        /* Tabla de auditoría derecha */
+        .audit-container { max-height: 250px; overflow-y: auto; background-color: #f1f5f9; border-radius: 10px; padding: 10px; border: 1px solid #cbd5e1; }
+        .audit-item { border-bottom: 1px solid #e2e8f0; padding: 8px 5px; font-size: 0.85rem; color: #334155; }
+        .audit-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark px-4 mb-4">
-        <a class="navbar-brand fw-bold" href="#">🏡 Inventario Casa Antigua</a>
-        <div class="ms-auto d-flex align-items-center">
-            <span class="text-white me-3">👤 Rol: <strong>{% if rol == 'admin' %}Administrador{% else %}Operario{% endif %}</strong></span>
-            <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand-custom" href="#">Casa Antigua</a>
+                <a href="#" class="nav-link-sub">Catálogo & MySQL</a>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+                <span class="rol-text">Rol: {{ rol }}</span>
+                <a href="/logout" class="btn-logout">Cerrar Sesión X</a>
+            </div>
         </div>
     </nav>
 
     <div class="container-fluid px-4">
-        
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            {% for message in messages %}
-              <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        {% if rol == 'admin' %}
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
-                <div class="card card-dashboard bg-primary text-white p-3 h-100 d-flex flex-column justify-content-center">
-                    <h5>💰 Caja del Día</h5>
-                    <h2 class="fw-bold">${{ "%.2f"|format(total_dia) }}</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card card-dashboard p-3 h-100 d-flex flex-column justify-content-center bg-white">
-                    <button class="btn btn-success w-100 mb-2 py-2" data-bs-toggle="modal" data-bs-target="#modalGuardar">➕ Registrar Nuevo Producto</button>
-                    <button class="btn btn-secondary w-100 py-2" data-bs-toggle="modal" data-bs-target="#modalHistorialGlobal">📋 Historial Perpetuo Auditado</button>
-                </div>
-            </div>
+        <div class="row g-4">
             
-            <div class="col-md-3">
-                <div class="card p-3 card-dashboard bg-white">
-                    <h6 class="text-center fw-bold text-muted">📉 Gráfico de Ventas (Hoy)</h6>
-                    <canvas id="myChart" style="max-height: 130px;"></canvas>
+            <div class="col-lg-8">
+                {% if rol == 'admin' %}
+                <div class="panel-central mb-4">
+                    <h5 class="panel-title">Panel de Control de Inventario</h5>
+                    <p class="panel-subtitle">Registre nuevos artículos con especificaciones comerciales en el servidor central MySQL.</p>
+                    
+                    <form action="/guardar" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Nombre del Artículo</label>
+                                <input type="text" name="nombre" class="form-control form-control-custom" placeholder="Ej: Silla Luis XV de Caoba" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Categoría / Línea</label>
+                                <input type="text" name="categoria" class="form-control form-control-custom" placeholder="Ej: Muebles Finos, Decoración" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Precio de Venta ($)</label>
+                                <input type="number" step="0.01" name="precio" class="form-control form-control-custom" placeholder="0.00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label-custom">Existencias Iniciales (Stock)</label>
+                                <input type="number" name="stock" class="form-control form-control-custom" placeholder="Cantidad en unidades" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label-custom">Hipervínculo / URL de la Imagen en la Nube</label>
+                                <input type="url" name="ruta_img" class="form-control form-control-custom" placeholder="https://ejemplo.com/imagen.jpg">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-publicar">🚀 Cargar y Publicar en el Catálogo Digital</button>
+                    </form>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 card-dashboard bg-white">
-                    <h6 class="text-center fw-bold text-muted">📈 Gráfico de Entradas (Hoy)</h6>
-                    <canvas id="chartEntradas" style="max-height: 130px;"></canvas>
-                </div>
-            </div>
-        </div>
+                {% endif %}
 
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card p-3 card-dashboard bg-white">
-                    <h5 class="fw-bold text-danger mb-2">🛒 Salidas / Ventas de Hoy</h5>
-                    <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
-                        <table class="table table-striped table-sm text-center">
-                            <thead>
-                                <tr><th>Producto</th><th>Cant</th><th>Total</th><th>Usuario</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for venta in ventas_hoy %}
-                                <tr><td>{{ venta[0] }}</td><td>{{ venta[1] }}</td><td>${{ venta[2] }}</td><td>{{ venta[3] }}</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="search-container d-flex align-items-center">
+                    <span class="me-2">🔍</span>
+                    <input type="text" class="form-control bg-transparent border-0 p-0 shadow-none text-secondary" style="font-size: 0.9rem;" placeholder="Buscar artículos por nombre o categoría dentro del catálogo...">
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card p-3 card-dashboard bg-white">
-                    <h5 class="fw-bold text-success mb-2">📦 Historial de Entradas al Stock (Hoy)</h5>
-                    <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
-                        <table class="table table-striped table-sm text-center">
-                            <thead>
-                                <tr><th>Hora</th><th>Producto</th><th>Cant Ingresada</th><th>Responsable</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for entrada in entradas_hoy %}
-                                <tr><td>{{ entrada[3] }}</td><td>{{ entrada[0] }}</td><td><span class="text-success fw-bold">+{{ entrada[1] }}</span></td><td>{{ entrada[2] }}</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
 
-        <h4 class="fw-bold mb-3 text-secondary">📦 Catálogo de Productos en Inventario</h4>
-        <div class="row row-cols-1 row-cols-md-4 g-4 mb-5">
-            {% for producto in productos %}
-            <div class="col">
-                <div class="card h-100 card-dashboard bg-white">
-                    <img src="{{ producto[5] }}" class="card-img-top product-img" alt="Imagen producto">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title fw-bold mb-0 text-dark">{{ producto[1] }}</h5>
-                        <small class="text-muted mb-2">{{ producto[2] }}</small>
-                        <h4 class="text-primary fw-bold">${{ producto[3] }}</h4>
-                        
-                        <div class="mt-auto">
-                            <p class="mb-2">Stock disponible: 
-                                <span class="badge {% if producto[4] > 5 %}bg-success{% else %}bg-danger{% endif %} fs-6">{{ producto[4] }} unds</span>
-                            </p>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5">
+                    {% for producto in productos %}
+                    <div class="col">
+                        <div class="card-producto">
+                            <div class="img-container">
+                                <img src="{{ producto[5] }}" alt="Imagen">
+                            </div>
+                            <span class="badge-categoria">{{ producto[2] }}</span>
+                            <h5 class="prod-title">{{ producto[1] }}</h5>
+                            <div class="prod-price">${{ "%.2f"|format(producto[3]) }}</div>
+                            <div class="prod-stock">Unidades disponibles: {{ producto[4] }}</div>
                             
-                            <div class="d-flex gap-1">
-                                <form action="/ajustar_stock/{{ producto[0] }}/resta" method="POST" class="d-flex w-100 gap-1">
-                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px;">
-                                    <button type="submit" class="btn btn-danger btn-sm flex-grow-1">📉 Vender</button>
-                                </form>
-                                
+                            {% if producto[4] <= 5 %}
+                            <div class="mb-2"><span class="badge bg-danger text-uppercase w-100 py-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">⚠️ Stock Crítico</span></div>
+                            {% endif %}
+
+                            <div class="row g-2">
+                                <div class="col-12">
+                                    <form action="/ajustar_stock/{{ producto[0] }}/resta" method="POST" class="d-flex gap-1">
+                                        <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center bg-white border" style="width: 50px; border-radius: 6px;">
+                                        <button type="submit" class="btn-venta">Registrar Venta</button>
+                                    </form>
+                                </div>
                                 {% if rol == 'admin' %}
-                                <form action="/ajustar_stock/{{ producto[0] }}/suma" method="POST" class="d-flex gap-1">
-                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px;">
-                                    <button type="submit" class="btn btn-success btn-sm">➕</button>
-                                </form>
-                                <a href="/eliminar/{{ producto[0] }}" class="btn btn-outline-secondary btn-sm" onclick="return confirm('¿Eliminar producto?')">🗑</a>
+                                <div class="col-12">
+                                    <form action="/ajustar_stock/{{ producto[0] }}/suma" method="POST" class="d-flex gap-1">
+                                        <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center bg-white border" style="width: 50px; border-radius: 6px;">
+                                        <button type="submit" class="btn-stock-add">+ Incrementar Stock</button>
+                                    </form>
+                                </div>
+                                <div class="col-12">
+                                    <a href="/eliminar/{{ producto[0] }}" class="btn-eliminar-cat" onclick="return confirm('¿Eliminar de catálogo?')">Eliminar de Catálogo</a>
+                                </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
+
+            <div class="col-lg-4">
+                <div class="panel-derecho text-center mb-4">
+                    <span class="form-label-custom d-block mb-1 text-muted" style="font-size: 0.75rem;">Flujo de Caja Real (Hoy)</span>
+                    <h2 class="fw-bold text-dark mb-3">${{ "%.2f"|format(total_dia) }}</h2>
+                    <button class="btn btn-outline-dark w-100 btn-sm py-2 font-weight-bold" style="border-radius: 8px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase;">📥 Descargar Reporte Word</button>
+                </div>
+
+                <div class="panel-derecho mb-4">
+                    <span class="form-label-custom d-block text-center text-muted mb-3" style="font-size: 0.75rem;">Volumen de Productos Vendidos</span>
+                    <div style="max-height: 220px; position: relative;" class="d-flex justify-content-center">
+                        <canvas id="chartCircular" style="max-width: 220px; max-height: 220px;"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel-derecho">
+                    <span class="form-label-custom d-block text-muted mb-3" style="font-size: 0.75rem;">Auditoría de Ventas del Día</span>
+                    <div class="audit-container">
+                        {% for venta in ventas_hoy %}
+                        <div class="audit-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block text-dark">{{ venta[0] }}</strong>
+                                <span class="text-muted small">Cant: {{ venta[1] }} | Por: {{ venta[3] }}</span>
+                            </div>
+                            <span class="text-success fw-bold">+${{ "%.2f"|format(venta[2]) }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="text-muted text-center small py-3">No hay ventas registradas hoy.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <div class="modal fade" id="modalGuardar" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog">
-        <form action="/guardar" method="POST" class="modal-content">
-          <div class="modal-header">
-              <h5 class="modal-title fw-bold">Agregar Producto al Catálogo</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3"><label class="form-label">Nombre del Producto</label><input type="text" name="nombre" class="form-control" required></div>
-            <div class="mb-3"><label class="form-label">Categoría</label><input type="text" name="categoria" class="form-control" required></div>
-            <div class="mb-3"><label class="form-label">Precio ($)</label><input type="number" step="0.01" name="precio" class="form-control" required></div>
-            <div class="mb-3"><label class="form-label">Stock Inicial</label><input type="number" name="stock" class="form-control" required></div>
-            <div class="mb-3"><label class="form-label">Enlace de la Imagen (URL Manual)</label><input type="url" name="ruta_img" class="form-control" placeholder="https://ejemplo.com/imagen.jpg"></div>
-          </div>
-          <div class="modal-footer">
-              <button type="button" class="btn border-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-success px-4">Guardar Producto</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="modal fade" id="modalHistorialGlobal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header"><h5 class="modal-title fw-bold">📋 Historial Perpetuo General</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-          <div class="modal-body">
-              <ul class="nav nav-tabs mb-3" id="tabHistorial" role="tablist">
-                  <li class="nav-item"><button class="nav-link active" id="ventas-tab" data-bs-toggle="tab" data-bs-target="#paneVentas" type="button">Historial Global Ventas</button></li>
-                  <li class="nav-item"><button class="nav-link" id="entradas-tab" data-bs-toggle="tab" data-bs-target="#paneEntradas" type="button">Historial Global Entradas Stock</button></li>
-              </ul>
-              <div class="tab-content" style="max-height: 350px; overflow-y: auto;">
-                  <div class="tab-pane fade show active" id="paneVentas">
-                      <table class="table table-sm text-center">
-                          <thead><tr><th>Fecha</th><th>Producto</th><th>Cant</th><th>Total</th><th>Usuario</th></tr></thead>
-                          <tbody>
-                              {% for h in historial_completo %}
-                              <tr><td>{{ h[4] }}</td><td>{{ h[0] }}</td><td>{{ h[1] }}</td><td>${{ h[2] }}</td><td>{{ h[3] }}</td></tr>
-                              {% endfor %}
-                          </tbody>
-                      </table>
-                  </div>
-                  <div class="tab-pane fade" id="paneEntradas">
-                      <table class="table table-sm text-center">
-                          <thead><tr><th>Fecha</th><th>Producto</th><th>Cant Ingresada</th><th>Responsable</th></tr></thead>
-                          <tbody>
-                              {% for e in historial_entradas_perpetuo %}
-                              <tr><td>{{ e[3] }}</td><td>{{ e[0] }}</td><td><span class="text-success fw-bold">+{{ e[1] }}</span></td><td>{{ e[2] }}</td></tr>
-                              {% endfor %}
-                          </tbody>
-                      </table>
-                  </div>
-              </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 1. Renderizar Gráfico de Ventas (Barras)
-        var ctxVentas = document.getElementById('myChart').getContext('2d');
-        new Chart(ctxVentas, {
-            type: 'bar',
+        var ctxCircular = document.getElementById('chartCircular').getContext('2d');
+        new Chart(ctxCircular, {
+            type: 'doughnut',
             data: {
                 labels: {{ labels|tojson }},
                 datasets: [{
-                    label: 'Unidades',
                     data: {{ valores|tojson }},
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
+                    backgroundColor: ['#0d1b2a', '#e63946', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'],
+                    borderWidth: 2,
+                    borderColor: '#e9ecef'
                 }]
             },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
-
-        // 2. Renderizar Gráfico de Entrada de Productos al Stock (Dona)
-        var ctxEntradas = document.getElementById('chartEntradas').getContext('2d');
-        new Chart(ctxEntradas, {
-            type: 'doughnut',
-            data: {
-                labels: {{ labels_entradas|tojson }},
-                datasets: [{
-                    data: {{ valores_entradas|tojson }},
-                    backgroundColor: ['#28a745', '#198754', '#20c997', '#0dcaf0', '#ffc107']
-                }]
-            },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 10 } }
+                    }
+                },
+                cutout: '65%'
+            }
         });
     </script>
 </body>
