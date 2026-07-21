@@ -5,7 +5,7 @@ import pg8000.native
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua'
 
-# URL y datos de conexión a PostgreSQL en Render
+# Datos de conexión a PostgreSQL en Render
 URL_BASE_DATOS = "postgresql://avnadmin:3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G@dpg-d9f7blnavr4c73c9u29g-a/casaantigua_db"
 
 def obtener_conexion():
@@ -55,7 +55,7 @@ def inicializar_base_datos():
     except Exception as e:
         print(f"Error al inicializar la base de datos: {e}")
 
-# Ejecutar la inicialización al arrancar la aplicación
+# Inicializar BD al iniciar la aplicación
 inicializar_base_datos()
 
 
@@ -70,9 +70,9 @@ def inicio():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Permite leer el usuario y la clave sin importar la variante de nombre en login.html
-        usuario = request.form.get('usuario') or request.form.get('username')
-        clave = request.form.get('clave') or request.form.get('password')
+        # Mapeo exacto con name="username" y name="password" de tu HTML
+        usuario = request.form.get('username')
+        clave = request.form.get('password')
         
         if not usuario or not clave:
             flash('Por favor complete todos los campos.', 'warning')
