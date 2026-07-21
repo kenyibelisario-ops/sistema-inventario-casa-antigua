@@ -1,18 +1,21 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import psycopg2
-from psycopg2.extras import DictCursor
+import pg8000.native
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua'
 
-# Tu URL de conexión interna de Render integrada directamente
+# Conexión limpia con pg8000 usando tu URL de Render
 URL_BASE_DATOS = "postgresql://avnadmin:3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G@dpg-d9f7blnavr4c73c9u29g-a/casaantigua_db"
 
 def obtener_conexion():
-    return psycopg2.connect(URL_BASE_DATOS)
-
-# CREACIÓN AUTOMÁTICA DE TABLAS AL ARRANCAR
+    return pg8000.native.Connection(
+        user="avnadmin",
+        password="3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G",
+        host="dpg-d9f7blnavr4c73c9u29g-a",
+        database="casaantigua_db",
+        port=5432
+    )
 def inicializar_base_datos():
     try:
         conexion = obtener_conexion()
