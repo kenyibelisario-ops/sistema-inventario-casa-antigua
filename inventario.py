@@ -5,7 +5,7 @@ import pg8000.native
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua'
 
-# Conexión limpia con pg8000 usando tu URL de Render
+# URL y parámetros de conexión a PostgreSQL en Render
 URL_BASE_DATOS = "postgresql://avnadmin:3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G@dpg-d9f7blnavr4c73c9u29g-a/casaantigua_db"
 
 def obtener_conexion():
@@ -16,210 +16,100 @@ def obtener_conexion():
         database="casaantigua_db",
         port=5432
     )
+
+# CREACIÓN AUTOMÁTICA DE TABLAS Y USUARIOS INICIALES
 def inicializar_base_datos():
     try:
         conexion = obtener_conexion()
-        cursor = conexion.cursor()
         
-        # Tabla de productos (Serial reemplaza a AUTO_INCREMENT)
-        cursor.execute("""
+        # 1. Tabla de usuarios
+        conexion.run("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id SERIAL PRIMARY KEY,
+                usuario VARCHAR(100) UNIQUE NOT NULL,
+                clave VARCHAR(255) NOT NULL,
+                rol VARCHAR(50) NOT NULL DEFAULT 'empleado'
+            )
+        """)
+        
+        # 2. Tabla de productos
+        conexion.run("""
             CREATE TABLE IF NOT EXISTS productos (
                 id SERIAL PRIMARY KEY,
                 nombre VARCHAR(255) NOT NULL,
                 categoria VARCHAR(100) NOT NULL,
                 precio DECIMAL(10, 2) NOT NULL,
-                stock INT NOT NULL,
-                ruta_img TEXT
-            );
+                cantidad INT NOT NULL
+            )
         """)
         
-        # Tabla de ventas e historial
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS ventas (
-                id SERIAL PRIMARY KEY,
-                producto_nombre VARCHAR(255) NOT NULL,
-                cantidad INT NOT NULL,
-                total_venta DECIMAL(10, 2) NOT NULL,
-                usuario_accion VARCHAR(100) NOT NULL,
-                tipo_movimiento VARCHAR(50) NOT NULL,
-                fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        conexion.commit()
-        cursor.close()
-        conexion.close()
-        print("Base de datos inicializada correctamente.")
-    except Exception as e:
-        print(f"Error al conectar o inicializar la base de datos: {e}")
+        # Insertar usuarios iniciales si la tabla usuarios está vacía
+        conteo = conexion.run("SELECT COUNT(*) FROM usuarios")[0][0]
+        if conteo == 0:
+            conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
+            conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('empleado', '1234', 'empleado')")
+            print("--> Usuarios por defecto ('admin' y 'empleado') creados correctamente.")
 
-# Inicializar tablas de forma automática
+        conexion.close()
+        print("--> Base de datos inicializada con éxito.")
+    except Exception as e:
+        print(f"Error al inicializar la base de datos: {e}")
+
+# Ejecutar la inicialización al arrancar
 inicializar_base_datos()
 
+
+# --- RUTAS Y VISTAS DE LA APLICACIÓN ---
+
 @app.route('/')
-def login():
+def inicio():
     if 'usuario' in session:
-        return redirect(url_for('index'))
+        return redirect(url_for('panel_principal'))
+    return redirect(url_for('login'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        usuario = request.form['usuario']
+        clave = request.form['clave']
+        
+        try:
+            conexion = obtener_conexion()
+            res = conexion.run("SELECT id, usuario, clave, rol FROM usuarios WHERE usuario = :u AND clave = :c", u=usuario, c=clave)
+            conexion.close()
+            
+            if res:
+                session['usuario_id'] = res[0][0]
+                session['usuario'] = res[0][1]
+                session['rol'] = res[0][3]
+                flash('¡Inicio de sesión exitoso!', 'success')
+                return redirect(url_for('panel_principal'))
+            else:
+                flash('Usuario o contraseña incorrectos.', 'danger')
+        except Exception as e:
+            flash(f'Error al conectar a la base de datos: {e}', 'danger')
+
     return render_template('login.html')
 
-@app.route('/login', methods=['POST'])
-def procesar_login():
-    usuario = request.form.get('usuario')
-    contrasena = request.form.get('contrasena')
-    
-    if usuario == 'admin' and contrasena == 'Antigua2026':
-        session['usuario'] = usuario
-        session['rol'] = 'admin'
-        return redirect(url_for('index'))
-    elif usuario == 'empleado' and contrasena == 'Cafecito2026':
-        session['usuario'] = usuario
-        session['rol'] = 'empleado'
-        return redirect(url_for('index'))
-    else:
-        flash('Credenciales incorrectas', 'danger')
-        return redirect(url_for('login'))
-
-@app.route('/index')
-def index():
+@app.route('/panel')
+def panel_principal():
     if 'usuario' not in session:
         return redirect(url_for('login'))
         
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=DictCursor)
-    
-    # Obtener productos
-    cursor.execute("SELECT id, nombre, categoria, precio, stock, ruta_img FROM productos ORDER BY id DESC")
-    productos = cursor.fetchall()
-    
-    # Ventas de hoy
-    cursor.execute("""
-        SELECT producto_nombre, cantidad, total_venta, usuario_accion, tipo_movimiento, 
-               TO_CHAR(fecha_hora, 'HH24:MI') as hora 
-        FROM ventas 
-        WHERE fecha_hora::date = CURRENT_DATE 
-        ORDER BY id DESC
-    """)
-    ventas_hoy = cursor.fetchall()
-    
-    # Historial Permanente
-    cursor.execute("""
-        SELECT producto_nombre, cantidad, total_venta, usuario_accion, tipo_movimiento, 
-               TO_CHAR(fecha_hora, 'DD/MM/YYYY HH24:MI') as fecha 
-        FROM ventas 
-        ORDER BY id DESC
-    """)
-    historial_permanente = cursor.fetchall()
-    
-    # Total Caja Hoy
-    cursor.execute("SELECT COALESCE(SUM(total_venta), 0) FROM ventas WHERE fecha_hora::date = CURRENT_DATE AND tipo_movimiento = 'VENTA'")
-    total_dia = cursor.fetchone()[0]
-    
-    # Datos para el gráfico circular
-    cursor.execute("""
-        SELECT producto_nombre, SUM(cantidad) 
-        FROM ventas 
-        WHERE tipo_movimiento = 'VENTA' 
-        GROUP BY producto_nombre
-    """)
-    grafico_data = cursor.fetchall()
-    labels = [row[0] for row in grafico_data]
-    valores = [row[1] for row in grafico_data]
-    
-    cursor.close()
-    conexion.close()
-    
-    return render_template('index.html', 
-                           rol=session.get('rol'), 
-                           productos=productos, 
-                           ventas_hoy=ventas_hoy, 
-                           historial_permanente=historial_permanente,
-                           total_dia=total_dia, 
-                           labels=labels, 
-                           valores=valores)
-
-@app.route('/guardar', methods=['POST'])
-def guardar():
-    if 'usuario' not in session or session.get('rol') != 'admin':
-        return redirect(url_for('login'))
+    try:
+        conexion = obtener_conexion()
+        productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
+        conexion.close()
+    except Exception as e:
+        productos = []
+        flash(f'Error al obtener productos: {e}', 'danger')
         
-    nombre = request.form.get('nombre')
-    categoria = request.form.get('categoria')
-    precio = request.form.get('precio')
-    stock = request.form.get('stock')
-    ruta_img = request.form.get('ruta_img') or "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=500"
-    
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO productos (nombre, categoria, precio, stock, ruta_img) 
-        VALUES (%s, %s, %s, %s, %s)
-    """, (nombre, categoria, precio, stock, ruta_img))
-    conexion.commit()
-    cursor.close()
-    conexion.close()
-    return redirect(url_for('index'))
-
-@app.route('/ajustar_stock/<int:id>/<string:operacion>', methods=['POST'])
-def ajustar_stock(id, operacion):
-    if 'usuario' not in session:
-        return redirect(url_for('login'))
-        
-    cantidad = int(request.form.get('cantidad', 1))
-    conexion = obtener_conexion()
-    cursor = conexion.cursor(cursor_factory=DictCursor)
-    
-    cursor.execute("SELECT nombre, precio, stock FROM productos WHERE id = %s", (id,))
-    producto = cursor.fetchone()
-    
-    if producto:
-        nuevo_stock = producto['stock']
-        tipo_movimiento = 'VENTA'
-        total_movimiento = producto['precio'] * cantidad
-        cantidad_registro = cantidad
-        
-        if operacion == 'resta':
-            if producto['stock'] >= cantidad:
-                nuevo_stock = producto['stock'] - cantidad
-            else:
-                cursor.close()
-                conexion.close()
-                return redirect(url_for('index'))
-        elif operacion == 'suma' and session.get('rol') == 'admin':
-            nuevo_stock = producto['stock'] + cantidad
-            tipo_movimiento = 'STOCK_ADD'
-            total_movimiento = 0
-            cantidad_registro = -cantidad
-            
-        # Actualizar Stock
-        cursor.execute("UPDATE productos SET stock = %s WHERE id = %s", (nuevo_stock, id))
-        
-        # Registrar Operación
-        cursor.execute("""
-            INSERT INTO ventas (producto_nombre, cantidad, total_venta, usuario_accion, tipo_movimiento) 
-            VALUES (%s, %s, %s, %s, %s)
-        """, (producto['nombre'], cantidad_registro, total_movimiento, session['usuario'], tipo_movimiento))
-        
-        conexion.commit()
-        
-    cursor.close()
-    conexion.close()
-    return redirect(url_for('index'))
-
-@app.route('/eliminar/<int:id>')
-def eliminar(id):
-    if 'usuario' not in session or session.get('rol') != 'admin':
-        return redirect(url_for('login'))
-        
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute("DELETE FROM productos WHERE id = %s", (id,))
-    conexion.commit()
-    cursor.close()
-    conexion.close()
-    return redirect(url_for('index'))
+    return render_template('index.html', productos=productos, usuario=session.get('usuario'), rol=session.get('rol'))
 
 @app.route('/logout')
 def logout():
     session.clear()
+    flash('Has cerrado sesión.', 'info')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
