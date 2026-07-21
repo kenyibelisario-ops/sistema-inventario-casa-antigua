@@ -7,160 +7,42 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body { 
-            background: linear-gradient(135deg, #2c1d11 0%, #4a3525 100%); 
-            min-height: 100vh;
-            color: #fff;
-        }
-        
-        /* Navbar superior adaptada al ecosistema oscuro */
-        .navbar-custom { 
-            background-color: rgba(0, 0, 0, 0.4); 
-            padding: 15px 30px; 
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .navbar-brand-custom { 
-            color: #d4af37 !important; 
-            font-weight: bold; 
-            font-size: 1.4rem; 
-            letter-spacing: 1px; 
-            text-transform: uppercase; 
-        }
-        .nav-link-sub { 
-            color: #bfa38a !important; 
-            font-size: 0.85rem; 
-            font-weight: bold; 
-            text-transform: uppercase; 
-            margin-left: 15px; 
-            text-decoration: none; 
-        }
-        .rol-text { 
-            color: #cdb49e; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-            margin-right: 15px; 
-            text-transform: uppercase; 
-        }
-        .btn-logout { 
-            background-color: rgba(231, 76, 60, 0.3); 
-            color: #fff; 
-            border: 1px solid #e74c3c;
-            border-radius: 8px; 
-            font-weight: bold; 
-            font-size: 0.9rem; 
-            padding: 6px 15px; 
-            transition: background 0.2s;
-        }
-        .btn-logout:hover {
-            background-color: #e74c3c;
-        }
-
-        /* Paneles con estética de cristal oscuro (Glassmorphism) */
-        .panel-central, .panel-derecho { 
-            background-color: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(10px);
-            border-radius: 20px; 
-            padding: 25px; 
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
-        }
-        
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #2c1d11 0%, #4a3525 100%); min-height: 100vh; color: #fff; }
+        .navbar-custom { background-color: rgba(0, 0, 0, 0.4); padding: 15px 30px; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .navbar-brand-custom { color: #d4af37 !important; font-weight: bold; font-size: 1.4rem; letter-spacing: 1px; text-transform: uppercase; }
+        .nav-link-sub { color: #bfa38a !important; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-left: 15px; text-decoration: none; }
+        .rol-text { color: #cdb49e; font-weight: bold; font-size: 0.9rem; margin-right: 15px; text-transform: uppercase; }
+        .btn-logout { background-color: rgba(231, 76, 60, 0.3); color: #fff; border: 1px solid #e74c3c; border-radius: 8px; font-weight: bold; font-size: 0.9rem; padding: 6px 15px; transition: background 0.2s; text-decoration: none;}
+        .btn-logout:hover { background-color: #e74c3c; color: #fff; }
+        .panel-central, .panel-derecho { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); }
         .panel-title { font-weight: bold; color: #d4af37; font-size: 1.3rem; }
         .panel-subtitle { color: #bfa38a; font-size: 0.85rem; margin-bottom: 20px; }
-
         .form-label-custom { font-size: 0.8rem; font-weight: bold; color: #cdb49e; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
-        .form-control-custom { 
-            background: rgba(0, 0, 0, 0.2); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-            border-radius: 8px; 
-            padding: 10px; 
-            font-size: 0.9rem; 
-            color: #fff; 
-        }
-        .form-control-custom:focus {
-            background: rgba(0, 0, 0, 0.4);
-            border-color: #d4af37;
-            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
-            color: #fff;
-        }
+        .form-control-custom { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 10px; font-size: 0.9rem; color: #fff; }
+        .form-control-custom:focus { background: rgba(0, 0, 0, 0.4); border-color: #d4af37; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3); color: #fff; }
         .form-control-custom::placeholder { color: rgba(255, 255, 255, 0.4); }
-
-        /* Botón de publicación dorado */
-        .btn-publicar { 
-            background-color: #d4af37; 
-            color: #2c1d11; 
-            border: none; 
-            border-radius: 8px; 
-            width: 100%; 
-            padding: 12px; 
-            font-weight: 600; 
-            font-size: 0.9rem; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px; 
-            margin-top: 15px;
-            transition: background 0.3s ease;
-        }
+        .btn-publicar { background-color: #d4af37; color: #2c1d11; border: none; border-radius: 8px; width: 100%; padding: 12px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; transition: background 0.3s ease; }
         .btn-publicar:hover { background-color: #f3cc57; }
-
-        /* Barra de búsqueda */
-        .search-container { 
-            background-color: rgba(255, 255, 255, 0.05); 
-            backdrop-filter: blur(10px);
-            border-radius: 12px; 
-            padding: 12px 20px; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            width: 100%; 
-            margin-bottom: 25px; 
-        }
-
-        /* Tarjetas del Catálogo */
-        .card-producto { 
-            background-color: rgba(255, 255, 255, 0.05); 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 15px; 
-            padding: 15px; 
-            height: 100%; 
-        }
-        .img-container { 
-            background-color: rgba(255, 255, 255, 0.9); 
-            border-radius: 10px; 
-            overflow: hidden; 
-            height: 190px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 12px; 
-        }
+        .search-container { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px 20px; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; margin-bottom: 25px; }
+        .card-producto { background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 15px; height: 100%; }
+        .img-container { background-color: rgba(255, 255, 255, 0.9); border-radius: 10px; overflow: hidden; height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
         .img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
         .badge-categoria { background-color: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.4); font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 5px; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
         .prod-title { font-weight: bold; color: #fff; font-size: 1.1rem; margin-bottom: 2px; }
         .prod-price { font-weight: bold; color: #d4af37; font-size: 1.25rem; margin-bottom: 2px; }
         .prod-stock { color: #cdb49e; font-size: 0.85rem; margin-bottom: 15px; }
-
-        /* Botones del Catálogo */
         .btn-venta { background-color: #2a9d8f; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; }
         .btn-venta:hover { background-color: #35bdae; }
         .btn-stock-add { background-color: transparent; color: #d4af37; border: 1px solid #d4af37; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; transition: background 0.2s; }
         .btn-stock-add:hover { background-color: rgba(212, 175, 55, 0.1); }
         .btn-eliminar-cat { color: #ea6153; background: none; border: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-decoration: none; display: block; text-align: center; margin-top: 10px; }
         .btn-eliminar-cat:hover { color: #ff7666; }
-
-        /* Contenedor de Auditoría e Historial */
         .audit-container { max-height: 300px; overflow-y: auto; background-color: rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .audit-item { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 5px; font-size: 0.85rem; color: #fff; }
-        .audit-item:last-child { border-bottom: none; }
-        
         .text-caja-total { color: #f3cc57 !important; }
         .btn-reporte-word { color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05); transition: background 0.2s; }
         .btn-reporte-word:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
-
-        /* Selectores superiores de historial (Pestañas limpias) */
         .nav-tabs-custom { display: flex; border-bottom: 2px solid rgba(255, 255, 255, 0.1); margin-bottom: 15px; gap: 10px; }
         .tab-button { background: none; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #bfa38a; border-bottom: 2px solid transparent; transition: all 0.2s; }
         .tab-button.active { color: #d4af37; border-bottom: 2px solid #d4af37; }
@@ -172,7 +54,7 @@
         <div class="container-fluid">
             <div class="d-flex align-items-center">
                 <a class="navbar-brand-custom" href="#">☕ Café-Casa Antigua</a>
-                <a href="#" class="nav-link-sub">Catálogo & MySQL</a>
+                <a href="#" class="nav-link-sub">Catálogo & PostgreSQL</a>
             </div>
             <div class="ms-auto d-flex align-items-center">
                 <span class="rol-text">Rol: {{ rol }}</span>
@@ -185,12 +67,13 @@
         <div class="row g-4">
             
             <div class="col-lg-8">
-                {% if rol == 'admin' %}
+                {% if rol == 'administrador' or rol == 'admin' %}
                 <div class="panel-central mb-4">
                     <h5 class="panel-title">Panel de Control de Inventario</h5>
-                    <p class="panel-subtitle">Registre nuevos artículos con especificaciones comerciales en el servidor central MySQL.</p>
+                    <p class="panel-subtitle">Registre nuevos artículos con especificaciones comerciales en el servidor central PostgreSQL.</p>
                     
-                    <form action="/guardar" method="POST">
+                    <!-- CORREGIDO: Apunta a /agregar en lugar de /guardar -->
+                    <form action="/agregar" method="POST">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label-custom">Nombre del Artículo</label>
@@ -228,7 +111,7 @@
                     <div class="col item-producto" data-nombre="{{ producto[1]|lower }}" data-categoria="{{ producto[2]|lower }}">
                         <div class="card-producto">
                             <div class="img-container">
-                                <img src="{{ producto[5] }}" alt="Imagen">
+                                <img src="{{ producto[5] if producto[5] else 'https://via.placeholder.com/150' }}" alt="Imagen">
                             </div>
                             <span class="badge-categoria">{{ producto[2] }}</span>
                             <h5 class="prod-title">{{ producto[1] }}</h5>
@@ -246,7 +129,7 @@
                                         <button type="submit" class="btn-venta">Registrar Venta</button>
                                     </form>
                                 </div>
-                                {% if rol == 'admin' %}
+                                {% if rol == 'administrador' or rol == 'admin' %}
                                 <div class="col-12">
                                     <form action="/ajustar_stock/{{ producto[0] }}/suma" method="POST" class="d-flex gap-1">
                                         <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center bg-dark text-white border-secondary shadow-none" style="width: 50px; border-radius: 6px;">
@@ -291,17 +174,7 @@
                                 <div class="audit-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong class="d-block" style="color: #fff;">{{ registro[0] }} <span class="fw-normal" style="font-size:0.75rem; color: #bfa38a;">({{ registro[5] }})</span></strong>
-                                        {% if registro[4] == 'VENTA' %}
-                                            <span class="small" style="color: #cdb49e;">Cant: {{ registro[1] }} | Por: {{ registro[3] }}</span>
-                                        {% else %}
-                                            <span class="small" style="color: #cdb49e;">📦 Stock Añadido: {{ registro[1]|abs }} | Por: {{ registro[3] }}</span>
-                                        {% endif %}
                                     </div>
-                                    {% if registro[4] == 'VENTA' %}
-                                        <span class="fw-bold" style="color: #2a9d8f;">+${{ "%.2f"|format(registro[2]) }}</span>
-                                    {% else %}
-                                        <span class="fw-bold" style="font-size: 0.8rem; color: #d4af37;">+{{ registro[1]|abs }} u.</span>
-                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             {% else %}
@@ -317,18 +190,7 @@
                                 <div class="audit-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <strong class="d-block" style="color: #fff;">{{ registro[0] }}</strong>
-                                        <span class="d-block" style="font-size: 0.7rem; color: #bfa38a !important;">🗓️ {{ registro[5] }}</span>
-                                        {% if registro[4] == 'VENTA' %}
-                                            <span class="small" style="color: #cdb49e;">Cant: {{ registro[1] }} | Por: {{ registro[3] }}</span>
-                                        {% else %}
-                                            <span class="small" style="color: #cdb49e;">📦 Entrada: {{ registro[1]|abs }} u. | Por: {{ registro[3] }}</span>
-                                        {% endif %}
                                     </div>
-                                    {% if registro[4] == 'VENTA' %}
-                                        <span class="fw-bold" style="color: #2a9d8f;">+${{ "%.2f"|format(registro[2]) }}</span>
-                                    {% else %}
-                                        <span class="fw-bold" style="font-size: 0.8rem; color: #d4af37;">+{{ registro[1]|abs }} u.</span>
-                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             {% else %}
@@ -336,15 +198,12 @@
                             {% endif %}
                         </div>
                     </div>
-
                 </div>
             </div>
-
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
         function cambiarTab(tipo) {
             let btnHoy = document.querySelectorAll('.tab-button')[0];
@@ -364,9 +223,7 @@
                 panelPerm.style.display = 'block';
             }
         }
-    </script>
 
-    <script>
         document.getElementById('inputBuscador').addEventListener('input', function(e) {
             let termino = e.target.value.toLowerCase().trim();
             let productos = document.querySelectorAll('.item-producto');
@@ -382,9 +239,7 @@
                 }
             });
         });
-    </script>
 
-    <script>
         var ctxCircular = document.getElementById('chartCircular').getContext('2d');
         new Chart(ctxCircular, {
             type: 'doughnut',

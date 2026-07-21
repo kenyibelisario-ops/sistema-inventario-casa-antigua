@@ -20,7 +20,6 @@ def obtener_conexion():
         port=5432
     )
 
-# Ruta auxiliar para crear tablas/usuarios manualmente solo cuando sea necesario
 @app.route('/init-db')
 def init_db():
     try:
@@ -39,11 +38,11 @@ def init_db():
                 nombre VARCHAR(255) NOT NULL,
                 categoria VARCHAR(100) NOT NULL,
                 precio DECIMAL(10, 2) NOT NULL,
-                cantidad INT NOT NULL
+                cantidad INT NOT NULL,
+                imagen VARCHAR(500)
             )
         """)
         
-        # Insertar usuarios si no existen
         res = conexion.run("SELECT COUNT(*) FROM usuarios")
         if res and res[0][0] == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
@@ -53,9 +52,6 @@ def init_db():
         return "Base de datos inicializada correctamente. <a href='/login'>Ir al Login</a>"
     except Exception as e:
         return f"Error al inicializar la base de datos: {e}"
-
-
-# --- RUTAS PRINCIPALES ---
 
 @app.route('/')
 def inicio():
@@ -98,11 +94,14 @@ def panel_principal():
         
     try:
         conexion = obtener_conexion()
-        productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
+        productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad, imagen FROM productos ORDER BY id DESC")
         
+        # Estructuras base para evitar errores en las plantillas si no hay tablas de transacciones aún
         total_dia = 0.0
         labels = []
         valores = []
+        ventas_hoy = []
+        historial_permanente = []
         
         conexion.close()
     except Exception as e:
@@ -110,6 +109,8 @@ def panel_principal():
         total_dia = 0.0
         labels = []
         valores = []
+        ventas_hoy = []
+        historial_permanente = []
         flash(f'Error al obtener productos: {e}', 'danger')
         
     return render_template('index.html', 
@@ -118,9 +119,10 @@ def panel_principal():
                            rol=session.get('rol'),
                            total_dia=total_dia,
                            labels=labels,
-                           valores=valores)
+                           valores=valores,
+                           ventas_hoy=ventas_hoy,
+                           historial_permanente=historial_permanente)
 
-# Ruta encargada de recibir y guardar los nuevos productos desde el formulario
 @app.route('/agregar', methods=['POST'])
 def agregar_producto():
     if 'usuario' not in session:
@@ -129,18 +131,61 @@ def agregar_producto():
     nombre = request.form.get('nombre')
     categoria = request.form.get('categoria')
     precio = request.form.get('precio')
-    cantidad = request.form.get('cantidad')
+    stock = request.form.get('stock')
+    ruta_img = request.form.get('ruta_img')
     
     try:
         conexion = obtener_conexion()
         conexion.run(
-            "INSERT INTO productos (nombre, categoria, precio, cantidad) VALUES (:n, :c, :p, :q)",
-            n=nombre, c=categoria, p=float(precio), q=int(cantidad)
+            "INSERT INTO productos (nombre, categoria, precio, cantidad, imagen) VALUES (:n, :c, :p, :q, :i)",
+            n=nombre, c=categoria, p=float(precio), q=int(stock), i=ruta_img
         )
         conexion.close()
         flash('¡Producto agregado exitosamente!', 'success')
     except Exception as e:
         flash(f'Error al agregar el producto: {e}', 'danger')
+        
+    return redirect(url_for('panel_principal'))
+
+@app.route('/ajustar_stock/<int:id_prod>/<accion>', methods=['POST'])
+def ajustar_stock(id_prod, accion):
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
+    cantidad_str = request.form.get('cantidad', '1')
+    try:
+        cantidad = int(cantidad_str)
+        conexion = obtener_conexion()
+        
+        if accion == 'resta':
+            conexion.run("UPDATE productos SET cantidad = cantidad - :q WHERE id = :id", q=cantidad, id=id_prod)
+            flash('Venta registrada correctamente.', 'success')
+        elif accion == 'suma':
+            if session.get('rol') == 'admin':
+                conexion.run("UPDATE productos SET cantidad = cantidad + :q WHERE id = :id", q=cantidad, id=id_prod)
+                flash('Stock incrementado correctamente.', 'success')
+            else:
+                flash('No tienes permisos de administrador para realizar esta acción.', 'danger')
+                
+        conexion.close()
+    except Exception as e:
+        flash(f'Error al ajustar el stock: {e}', 'danger')
+        
+    return redirect(url_for('panel_principal'))
+
+@app.route('/eliminar/<int:id_prod>')
+def eliminar_producto(id_prod):
+    if 'usuario' not in session or session.get('rol') != 'admin':
+        flash('Acceso no autorizado.', 'danger')
+        return redirect(url_for('login'))
+        
+    try:
+        conexion = obtener_conexion()
+        conexion.run("DELETE FROM productos WHERE id = :id", id=id_prod)
+        conexion.close()
+        flash('Producto eliminado del catálogo.', 'info')
+    except Exception as e:
+        flash(f'Error al eliminar el producto: {e}', 'danger')
         
     return redirect(url_for('panel_principal'))
 
