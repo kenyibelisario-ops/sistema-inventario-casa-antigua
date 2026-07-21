@@ -5,21 +5,26 @@ import pg8000.native
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua'
 
+# Datos de conexión
+DB_USER = "avnadmin"
+DB_PASS = "3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G"
+DB_HOST = "dpg-d9f7blnavr4c73c9u29g-a"
+DB_NAME = "casaantigua_db"
+
 def obtener_conexion():
     return pg8000.native.Connection(
-        user="avnadmin",
-        password="3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G",
-        host="dpg-d9f7blnavr4c73c9u29g-a",
-        database="casaantigua_db",
+        user=DB_USER,
+        password=DB_PASS,
+        host=DB_HOST,
+        database=DB_NAME,
         port=5432
     )
 
-# INICIALIZACIÓN DE TABLAS Y USUARIOS
-def inicializar_base_datos():
+# Ruta auxiliar para crear tablas/usuarios manualmente solo cuando sea necesario
+@app.route('/init-db')
+def init_db():
     try:
         conexion = obtener_conexion()
-        
-        # Crear tabla usuarios
         conexion.run("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
@@ -28,8 +33,6 @@ def inicializar_base_datos():
                 rol VARCHAR(50) NOT NULL DEFAULT 'empleado'
             )
         """)
-        
-        # Crear tabla productos
         conexion.run("""
             CREATE TABLE IF NOT EXISTS productos (
                 id SERIAL PRIMARY KEY,
@@ -40,27 +43,19 @@ def inicializar_base_datos():
             )
         """)
         
-        # Verificar e insertar usuarios iniciales
+        # Insertar usuarios si no existen
         res = conexion.run("SELECT COUNT(*) FROM usuarios")
-        conteo = res[0][0] if res else 0
-        
-        if conteo == 0:
+        if res and res[0][0] == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('empleado', '1234', 'empleado')")
-            print("--> Usuarios iniciales creados.")
-
+        
         conexion.close()
+        return "Base de datos inicializada correctamente. <a href='/login'>Ir al Login</a>"
     except Exception as e:
-        print(f"Error inicializando BD: {e}")
-
-# Intentar inicializar la BD al cargar
-try:
-    inicializar_base_datos()
-except Exception as e:
-        print(f"No se pudo conectar a la BD durante el arranque: {e}")
+        return f"Error al inicializar la base de datos: {e}"
 
 
-# --- RUTAS ---
+# --- RUTAS PRINCIPALES ---
 
 @app.route('/')
 def inicio():
@@ -92,7 +87,7 @@ def login():
             else:
                 flash('Usuario o contraseña incorrectos.', 'danger')
         except Exception as e:
-            flash(f'Error de conexión: {e}', 'danger')
+            flash(f'Error de conexión a la base de datos: {e}', 'danger')
 
     return render_template('login.html')
 
