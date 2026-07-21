@@ -5,9 +5,6 @@ import pg8000.native
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua'
 
-# Datos de conexión a PostgreSQL en Render
-URL_BASE_DATOS = "postgresql://avnadmin:3HUKlHpqIidKR5nM0nPDN69W1Dq7kJ1G@dpg-d9f7blnavr4c73c9u29g-a/casaantigua_db"
-
 def obtener_conexion():
     return pg8000.native.Connection(
         user="avnadmin",
@@ -17,12 +14,12 @@ def obtener_conexion():
         port=5432
     )
 
-# CREACIÓN AUTOMÁTICA DE TABLAS Y USUARIOS INICIALES
+# INICIALIZACIÓN DE TABLAS Y USUARIOS
 def inicializar_base_datos():
     try:
         conexion = obtener_conexion()
         
-        # 1. Tabla de usuarios
+        # Crear tabla usuarios
         conexion.run("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
@@ -32,7 +29,7 @@ def inicializar_base_datos():
             )
         """)
         
-        # 2. Tabla de productos
+        # Crear tabla productos
         conexion.run("""
             CREATE TABLE IF NOT EXISTS productos (
                 id SERIAL PRIMARY KEY,
@@ -43,23 +40,27 @@ def inicializar_base_datos():
             )
         """)
         
-        # Insertar usuarios iniciales si la tabla usuarios está vacía
-        conteo = conexion.run("SELECT COUNT(*) FROM usuarios")[0][0]
+        # Verificar e insertar usuarios iniciales
+        res = conexion.run("SELECT COUNT(*) FROM usuarios")
+        conteo = res[0][0] if res else 0
+        
         if conteo == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('empleado', '1234', 'empleado')")
-            print("--> Usuarios por defecto ('admin' y 'empleado') creados correctamente.")
+            print("--> Usuarios iniciales creados.")
 
         conexion.close()
-        print("--> Base de datos inicializada con éxito.")
     except Exception as e:
-        print(f"Error al inicializar la base de datos: {e}")
+        print(f"Error inicializando BD: {e}")
 
-# Inicializar BD al iniciar la aplicación
-inicializar_base_datos()
+# Intentar inicializar la BD al cargar
+try:
+    inicializar_base_datos()
+except Exception as e:
+        print(f"No se pudo conectar a la BD durante el arranque: {e}")
 
 
-# --- RUTAS Y VISTAS DE LA APLICACIÓN ---
+# --- RUTAS ---
 
 @app.route('/')
 def inicio():
@@ -70,7 +71,6 @@ def inicio():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Mapeo exacto con name="username" y name="password" de tu HTML
         usuario = request.form.get('username')
         clave = request.form.get('password')
         
@@ -92,7 +92,7 @@ def login():
             else:
                 flash('Usuario o contraseña incorrectos.', 'danger')
         except Exception as e:
-            flash(f'Error al conectar a la base de datos: {e}', 'danger')
+            flash(f'Error de conexión: {e}', 'danger')
 
     return render_template('login.html')
 
