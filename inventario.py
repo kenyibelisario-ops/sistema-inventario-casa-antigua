@@ -98,9 +98,9 @@ def panel_principal():
         
     try:
         conexion = obtener_conexion()
+        # Consulta original intacta para listar los productos
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
         
-        # Variables requeridas por index.html (coincidiendo con labels y valores)
         total_dia = 0.0
         labels = []
         valores = []
