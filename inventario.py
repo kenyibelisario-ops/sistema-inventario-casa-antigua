@@ -98,7 +98,6 @@ def panel_principal():
         
     try:
         conexion = obtener_conexion()
-        # Consulta original intacta para listar los productos
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
         
         total_dia = 0.0
@@ -120,6 +119,30 @@ def panel_principal():
                            total_dia=total_dia,
                            labels=labels,
                            valores=valores)
+
+# Ruta encargada de recibir y guardar los nuevos productos desde el formulario
+@app.route('/agregar', methods=['POST'])
+def agregar_producto():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+        
+    nombre = request.form.get('nombre')
+    categoria = request.form.get('categoria')
+    precio = request.form.get('precio')
+    cantidad = request.form.get('cantidad')
+    
+    try:
+        conexion = obtener_conexion()
+        conexion.run(
+            "INSERT INTO productos (nombre, categoria, precio, cantidad) VALUES (:n, :c, :p, :q)",
+            n=nombre, c=categoria, p=float(precio), q=int(cantidad)
+        )
+        conexion.close()
+        flash('¡Producto agregado exitosamente!', 'success')
+    except Exception as e:
+        flash(f'Error al agregar el producto: {e}', 'danger')
+        
+    return redirect(url_for('panel_principal'))
 
 @app.route('/logout')
 def logout():
