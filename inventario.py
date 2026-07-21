@@ -100,17 +100,17 @@ def panel_principal():
         conexion = obtener_conexion()
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
         
-        # Variables requeridas por index.html para evitar errores de renderizado
+        # Variables requeridas por index.html (coincidiendo con labels y valores)
         total_dia = 0.0
         labels = []
-        data = []
+        valores = []
         
         conexion.close()
     except Exception as e:
         productos = []
         total_dia = 0.0
         labels = []
-        data = []
+        valores = []
         flash(f'Error al obtener productos: {e}', 'danger')
         
     return render_template('index.html', 
@@ -119,7 +119,7 @@ def panel_principal():
                            rol=session.get('rol'),
                            total_dia=total_dia,
                            labels=labels,
-                           data=data)
+                           valores=valores)
 
 @app.route('/logout')
 def logout():
