@@ -99,12 +99,21 @@ def panel_principal():
     try:
         conexion = obtener_conexion()
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad FROM productos ORDER BY id DESC")
+        
+        # Variable total_dia para evitar el error de Jinja2 (UndefinedError)
+        total_dia = 0.0
+        
         conexion.close()
     except Exception as e:
         productos = []
+        total_dia = 0.0
         flash(f'Error al obtener productos: {e}', 'danger')
         
-    return render_template('index.html', productos=productos, usuario=session.get('usuario'), rol=session.get('rol'))
+    return render_template('index.html', 
+                           productos=productos, 
+                           usuario=session.get('usuario'), 
+                           rol=session.get('rol'),
+                           total_dia=total_dia)
 
 @app.route('/logout')
 def logout():
