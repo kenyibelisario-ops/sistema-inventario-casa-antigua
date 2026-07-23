@@ -39,13 +39,13 @@ def init_db():
                 categoria VARCHAR(100) NOT NULL,
                 precio DECIMAL(10, 2) NOT NULL,
                 cantidad INT NOT NULL,
-                imagen VARCHAR(500)
+                imagen TEXT
             )
         """)
         
-        # ASEGURAR COLUMNA IMAGEN SI LA TABLA YA EXISTÍA
+        # ASEGURAR TIPO TEXT PARA LA IMAGEN SI LA TABLA YA EXISTÍA
         try:
-            conexion.run("ALTER TABLE productos ADD COLUMN IF NOT EXISTS imagen VARCHAR(500);")
+            conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
         except Exception:
             pass
 
@@ -101,9 +101,9 @@ def panel_principal():
     try:
         conexion = obtener_conexion()
         
-        # AUTO-MIGRACIÓN: Crea la columna 'imagen' automáticamente si no existe
+        # AUTO-MIGRACIÓN: Cambia o asegura que la columna 'imagen' sea tipo TEXT
         try:
-            conexion.run("ALTER TABLE productos ADD COLUMN IF NOT EXISTS imagen VARCHAR(500);")
+            conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
         except Exception:
             pass
             
