@@ -20,8 +20,10 @@ def obtener_conexion():
         port=5432
     )
 
-@app.route('/init-db')
-def init_db():
+# ==========================================
+# AUTO-INICIALIZACIÓN DE LA BASE DE DATOS
+# ==========================================
+def asegurar_base_de_datos():
     try:
         conexion = obtener_conexion()
         conexion.run("""
@@ -69,21 +71,29 @@ def init_db():
             )
         """)
         
-        # ASEGURAR TIPO TEXT PARA LA IMAGEN SI LA TABLA YA EXISTÍA
+        # Asegurar tipo TEXT para la imagen si ya existía como VARCHAR
         try:
             conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
         except Exception:
             pass
 
+        # Crear usuarios por defecto si la tabla está vacía
         res = conexion.run("SELECT COUNT(*) FROM usuarios")
         if res and res[0][0] == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('empleado', '1234', 'empleado')")
         
         conexion.close()
-        return "Base de datos inicializada y actualizada correctamente. <a href='/login'>Ir al Login</a>"
     except Exception as e:
-        return f"Error al inicializar la base de datos: {e}"
+        print(f"Error crítico al auto-inicializar la BD: {e}")
+
+# Ejecutar la verificación inmediatamente al arrancar la app
+asegurar_base_de_datos()
+
+@app.route('/init-db')
+def init_db():
+    asegurar_base_de_datos()
+    return "Base de datos inicializada y sincronizada correctamente. <a href='/login'>Ir al Login</a>"
 
 @app.route('/')
 def inicio():
@@ -126,13 +136,6 @@ def panel_principal():
         
     try:
         conexion = obtener_conexion()
-        
-        # AUTO-MIGRACIÓN: Asegura que la columna 'imagen' sea tipo TEXT
-        try:
-            conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
-        except Exception:
-            pass
-            
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad, imagen FROM productos ORDER BY id DESC")
         
         total_dia = 0.0
@@ -216,8 +219,8 @@ def agregar_producto():
                 "INSERT INTO historial (accion, detalle, usuario) VALUES ('AGREGAR', :d, :u)",
                 d=f"Se agregó el producto {nombre} con stock inicial de {stock}", u=session.get('usuario')
             )
-        except Exception:
-            pass
+        except Exception as err:
+            print(f"Error registrando historial: {err}")
 
         conexion.close()
         flash('¡Producto agregado exitosamente!', 'success')
@@ -259,8 +262,8 @@ def ajustar_stock(id_prod, accion):
                         "INSERT INTO historial (accion, detalle, usuario) VALUES ('VENTA', :d, :u)",
                         d=f"Se vendió {cantidad} unidad(es) de {nombre_prod} por un total de ${total_venta}", u=session.get('usuario')
                     )
-            except Exception:
-                pass
+            except Exception as err:
+                print(f"Error registrando venta en BD: {err}")
 
             flash('Venta registrada correctamente.', 'success')
         elif accion == 'suma':
