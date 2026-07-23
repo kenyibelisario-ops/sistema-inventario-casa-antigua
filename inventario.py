@@ -101,7 +101,7 @@ def panel_principal():
     try:
         conexion = obtener_conexion()
         
-        # AUTO-MIGRACIÓN: Cambia o asegura que la columna 'imagen' sea tipo TEXT
+        # AUTO-MIGRACIÓN: Asegura que la columna 'imagen' soporte textos largos
         try:
             conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
         except Exception:
@@ -109,11 +109,41 @@ def panel_principal():
             
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad, imagen FROM productos ORDER BY id DESC")
         
+        # Estructuras recuperadas para el flujo de caja, gráficas e historiales
         total_dia = 0.0
         labels = []
         valores = []
         ventas_hoy = []
         historial_permanente = []
+        
+        # Intentar obtener datos de ventas o transacciones si las tablas existen
+        try:
+            res_ventas = conexion.run("SELECT SUM(total) FROM ventas_dia")
+            if res_ventas and res_ventas[0][0]:
+                total_dia = float(res_ventas[0][0])
+        except Exception:
+            pass
+
+        try:
+            res_grafica = conexion.run("SELECT producto, SUM(cantidad) FROM detalle_ventas GROUP BY producto")
+            for row in res_grafica:
+                labels.append(row[0])
+                valores.append(row[1])
+        except Exception:
+            # Datos de respaldo para la gráfica basados en productos actuales si no hay ventas
+            for p in productos:
+                labels.append(p[1])  # nombre
+                valores.append(p[4])  # cantidad / stock
+        
+        try:
+            ventas_hoy = conexion.run("SELECT * FROM ventas_dia ORDER BY id DESC")
+        except Exception:
+            pass
+
+        try:
+            historial_permanente = conexion.run("SELECT * FROM historial ORDER BY id DESC")
+        except Exception:
+            pass
         
         conexion.close()
     except Exception as e:
@@ -152,6 +182,16 @@ def agregar_producto():
             "INSERT INTO productos (nombre, categoria, precio, cantidad, imagen) VALUES (:n, :c, :p, :q, :i)",
             n=nombre, c=categoria, p=float(precio), q=int(stock), i=ruta_img
         )
+        
+        # Registrar en el historial si la tabla existe
+        try:
+            conexion.run(
+                "INSERT INTO historial (accion, detalle, usuario) VALUES ('AGREGAR', :d, :u)",
+                d=f"Se agregó el producto {nombre} con stock {stock}", u=session.get('usuario')
+            )
+        except Exception:
+            pass
+
         conexion.close()
         flash('¡Producto agregado exitosamente!', 'success')
     except Exception as e:
@@ -171,6 +211,21 @@ def ajustar_stock(id_prod, accion):
         
         if accion == 'resta':
             conexion.run("UPDATE productos SET cantidad = cantidad - :q WHERE id = :id", q=cantidad, id=id_prod)
+            
+            # Intentar registrar venta / flujo de caja si las tablas secundarias existen
+            try:
+                res_prod = conexion.run("SELECT nombre, precio FROM productos WHERE id = :id", id=id_prod)
+                if res_prod:
+                    nombre_prod = res_prod[0][0]
+                    precio_prod = float(res_prod[0][1])
+                    total_venta = precio_prod * cantidad
+                    conexion.run(
+                        "INSERT INTO ventas_dia (producto, cantidad, total, usuario) VALUES (:p, :q, :t, :u)",
+                        p=nombre_prod, q=cantidad, t=total_venta, u=session.get('usuario')
+                    )
+            except Exception:
+                pass
+
             flash('Venta registrada correctamente.', 'success')
         elif accion == 'suma':
             rol_actual = session.get('rol')
