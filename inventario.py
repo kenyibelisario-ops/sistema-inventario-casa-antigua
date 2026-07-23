@@ -43,13 +43,19 @@ def init_db():
             )
         """)
         
+        # ASEGURAR COLUMNA IMAGEN SI LA TABLA YA EXISTÍA
+        try:
+            conexion.run("ALTER TABLE productos ADD COLUMN IF NOT EXISTS imagen VARCHAR(500);")
+        except Exception:
+            pass
+
         res = conexion.run("SELECT COUNT(*) FROM usuarios")
         if res and res[0][0] == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('empleado', '1234', 'empleado')")
         
         conexion.close()
-        return "Base de datos inicializada correctamente. <a href='/login'>Ir al Login</a>"
+        return "Base de datos inicializada y actualizada correctamente. <a href='/login'>Ir al Login</a>"
     except Exception as e:
         return f"Error al inicializar la base de datos: {e}"
 
@@ -94,9 +100,15 @@ def panel_principal():
         
     try:
         conexion = obtener_conexion()
+        
+        # AUTO-MIGRACIÓN: Crea la columna 'imagen' automáticamente si no existe
+        try:
+            conexion.run("ALTER TABLE productos ADD COLUMN IF NOT EXISTS imagen VARCHAR(500);")
+        except Exception:
+            pass
+            
         productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad, imagen FROM productos ORDER BY id DESC")
         
-        # Estructuras base para evitar errores en las plantillas si no hay tablas de transacciones aún
         total_dia = 0.0
         labels = []
         valores = []
