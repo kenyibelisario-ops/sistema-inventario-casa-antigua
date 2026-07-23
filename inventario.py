@@ -161,7 +161,8 @@ def ajustar_stock(id_prod, accion):
             conexion.run("UPDATE productos SET cantidad = cantidad - :q WHERE id = :id", q=cantidad, id=id_prod)
             flash('Venta registrada correctamente.', 'success')
         elif accion == 'suma':
-            if session.get('rol') == 'admin':
+            rol_actual = session.get('rol')
+            if rol_actual == 'administrador' or rol_actual == 'admin':
                 conexion.run("UPDATE productos SET cantidad = cantidad + :q WHERE id = :id", q=cantidad, id=id_prod)
                 flash('Stock incrementado correctamente.', 'success')
             else:
@@ -175,9 +176,10 @@ def ajustar_stock(id_prod, accion):
 
 @app.route('/eliminar/<int:id_prod>')
 def eliminar_producto(id_prod):
-    if 'usuario' not in session or session.get('rol') != 'admin':
+    rol_actual = session.get('rol')
+    if 'usuario' not in session or (rol_actual != 'admin' and rol_actual != 'administrador'):
         flash('Acceso no autorizado.', 'danger')
-        return redirect(url_for('login'))
+        return redirect(url_for('panel_principal'))
         
     try:
         conexion = obtener_conexion()

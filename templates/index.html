@@ -64,6 +64,19 @@
     </nav>
 
     <div class="container-fluid px-4">
+        
+        <!-- BLOQUE DE MENSAJES FLASH -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show mt-2" role="alert" style="border-radius: 8px;">
+                        <strong>{{ '¡Éxito!' if category == 'success' else 'Atención:' }}</strong> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <div class="row g-4">
             
             <div class="col-lg-8">
@@ -72,7 +85,6 @@
                     <h5 class="panel-title">Panel de Control de Inventario</h5>
                     <p class="panel-subtitle">Registre nuevos artículos con especificaciones comerciales en el servidor central PostgreSQL.</p>
                     
-                    <!-- CORREGIDO: Apunta a /agregar en lugar de /guardar -->
                     <form action="/agregar" method="POST">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -93,7 +105,8 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label-custom">Hipervínculo / URL de la Imagen en la Nube</label>
-                                <input type="url" name="ruta_img" class="form-control form-control-custom shadow-none" placeholder="https://ejemplo.com/imagen.jpg">
+                                <!-- CORREGIDO: type="text" para evitar el bloqueo del navegador -->
+                                <input type="text" name="ruta_img" class="form-control form-control-custom shadow-none" placeholder="https://ejemplo.com/imagen.jpg">
                             </div>
                         </div>
                         <button type="submit" class="btn-publicar">🚀 Cargar y Publicar en el Catálogo Digital</button>
