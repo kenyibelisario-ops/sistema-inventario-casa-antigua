@@ -3,18 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo - Café Casa Antigua</title>
+    <title>Café-Casa Antigua - Catálogo de Productos</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #2e1b14; /* Fondo café oscuro idéntico al panel */
+            color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Barra de navegación superior */
+        .navbar-custom {
+            background-color: #1a0f0a;
+            border-bottom: 2px solid #d4af37;
+        }
+
+        .navbar-brand {
+            color: #d4af37 !important;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* Tarjetas de productos con el estilo de contenedor oscuro */
+        .card-custom {
+            background-color: #3b2219;
+            border: 1px solid #523124;
+            border-radius: 12px;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .card-title {
+            color: #e5c158;
+            font-weight: 700;
+        }
+
+        /* Botones y badges */
+        .btn-dorado {
+            background-color: #d4af37;
+            color: #1a0f0a;
+            font-weight: bold;
+            border: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn-dorado:hover {
+            background-color: #e5c158;
+            color: #1a0f0a;
+        }
+
+        .badge-categoria {
+            background-color: #523124;
+            color: #d4af37;
+            border: 1px solid #d4af37;
+        }
+
+        .precio-texto {
+            color: #a3e4d7;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: #1a0f0a;
+            color: #d4af37;
+            border-top: 1px solid #523124;
+        }
+    </style>
 </head>
 <body>
 
     <!-- Barra de Navegación -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/catalogo">☕ Café Casa Antigua - Catálogo</a>
+    <nav class="navbar navbar-expand-lg navbar-custom py-3 px-4 shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand fs-5" href="/catalogo">☕ CAFÉ-CASA ANTIGUA &mdash; CATÁLOGO DIGITAL</a>
             <div class="d-flex">
-                <a href="/login" class="btn btn-outline-dark btn-sm">Acceso Empleados / Admin</a>
+                <a href="/login" class="btn btn-dorado btn-sm px-3">Acceso Empleados / Admin</a>
             </div>
         </div>
     </nav>
@@ -22,35 +100,37 @@
     <!-- Contenido Principal -->
     <div class="container my-5">
         <div class="text-center mb-5">
-            <h1 class="fw-bold">Menú y Productos Disponibles</h1>
-            <p class="text-muted">Consulta nuestros productos en tiempo real</p>
+            <h1 class="fw-bold" style="color: #e5c158;">Menú y Disponibilidad en Línea</h1>
+            <p class="text-light opacity-75">Explora los productos y artículos de nuestra cafetería en tiempo real</p>
         </div>
 
         {% if productos %}
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 {% for p in productos %}
                     <div class="col">
-                        <div class="card h-100 shadow-sm">
+                        <div class="card card-custom h-100">
                             <!-- Imagen del Producto -->
                             {% if p[5] %}
-                                <img src="{{ p[5] }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ p[1] }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Imagen+No+Disponible';">
+                                <img src="{{ p[5] }}" class="card-img-top" alt="{{ p[1] }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Sin+Imagen+Disponible';">
                             {% else %}
-                                <img src="https://via.placeholder.com/400x200?text=Sin+Imagen" class="card-img-top" style="height: 200px; object-fit: cover;" alt="Sin imagen">
+                                <img src="https://via.placeholder.com/400x200?text=Café+Casa+Antigua" class="card-img-top" alt="Sin imagen">
                             {% endif %}
                             
                             <div class="card-body d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge bg-secondary">{{ p[2] }}</span>
+                                    <span class="badge badge-categoria px-2 py-1">{{ p[2] }}</span>
                                     {% if p[4] > 0 %}
-                                        <span class="badge bg-success">Disponible</span>
+                                        <span class="badge bg-success">Stock: {{ p[4] }}</span>
                                     {% else %}
                                         <span class="badge bg-danger">Agotado</span>
                                     {% endif %}
                                 </div>
-                                <h5 class="card-title fw-bold">{{ p[1] }}</h5>
-                                <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top">
-                                    <span class="fs-5 fw-bold text-success">${{ "%.2f"|format(p[3]) }}</span>
-                                    <small class="text-muted">Stock: {{ p[4] }}</small>
+                                
+                                <h5 class="card-title mt-2">{{ p[1] }}</h5>
+                                
+                                <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                                    <span class="precio-texto">${{ "%.2f"|format(p[3]) }}</span>
+                                    <small class="text-muted">Ref: #{{ p[0] }}</small>
                                 </div>
                             </div>
                         </div>
@@ -58,16 +138,16 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-warning text-center py-5" role="alert">
-                <h4 class="alert-heading">No hay productos en este momento</h4>
-                <p class="mb-0">Vuelve más tarde para ver las novedades de nuestro catálogo.</p>
+            <div class="alert text-center py-5 shadow-sm" role="alert" style="background-color: #3b2219; color: #e5c158; border: 1px solid #523124;">
+                <h4 class="alert-heading fw-bold">Catálogo en mantenimiento o vacío</h4>
+                <p class="mb-0 text-light">No hay artículos registrados actualmente en la base de datos central.</p>
             </div>
         {% endif %}
     </div>
 
     <!-- Footer -->
-    <footer class="text-center py-4 bg-white border-top mt-5 text-muted">
-        <small>&copy; 2026 Café Casa Antigua. Todos los derechos reservados.</small>
+    <footer class="text-center py-4 mt-5">
+        <small>&copy; 2026 Café-Casa Antigua. Todos los derechos reservados.</small>
     </footer>
 
 </body>
