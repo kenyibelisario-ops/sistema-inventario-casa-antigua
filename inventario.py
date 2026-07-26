@@ -71,13 +71,11 @@ def asegurar_base_de_datos():
             )
         """)
         
-        # Asegurar tipo TEXT para la imagen si ya existía como VARCHAR
         try:
             conexion.run("ALTER TABLE productos ALTER COLUMN imagen TYPE TEXT;")
         except Exception:
             pass
 
-        # Crear usuarios por defecto si la tabla está vacía
         res = conexion.run("SELECT COUNT(*) FROM usuarios")
         if res and res[0][0] == 0:
             conexion.run("INSERT INTO usuarios (usuario, clave, rol) VALUES ('admin', '1234', 'administrador')")
@@ -87,7 +85,6 @@ def asegurar_base_de_datos():
     except Exception as e:
         print(f"Error crítico al auto-inicializar la BD: {e}")
 
-# Ejecutar la verificación inmediatamente al arrancar la app
 asegurar_base_de_datos()
 
 @app.route('/init-db')
@@ -99,7 +96,21 @@ def init_db():
 def inicio():
     if 'usuario' in session:
         return redirect(url_for('panel_principal'))
-    return redirect(url_for('login'))
+    return redirect(url_for('catalogo_clientes'))
+
+# ==========================================
+# RUTA PÚBLICA PARA CLIENTES (CATÁLOGO)
+# ==========================================
+@app.route('/catalogo')
+def catalogo_clientes():
+    try:
+        conexion = obtener_conexion()
+        productos = conexion.run("SELECT id, nombre, categoria, precio, cantidad, imagen FROM productos ORDER BY id DESC")
+        conexion.close()
+    except Exception:
+        productos = []
+        
+    return render_template('catalogo.html', productos=productos)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -144,7 +155,6 @@ def panel_principal():
         ventas_hoy = []
         historial_permanente = []
         
-        # Obtener flujo de caja diario
         try:
             res_ventas = conexion.run("SELECT SUM(total) FROM ventas_dia")
             if res_ventas and res_ventas[0][0]:
@@ -152,7 +162,6 @@ def panel_principal():
         except Exception:
             pass
 
-        # Obtener datos para la gráfica
         try:
             res_grafica = conexion.run("SELECT producto, SUM(cantidad) FROM detalle_ventas GROUP BY producto")
             for row in res_grafica:
@@ -163,13 +172,11 @@ def panel_principal():
                 labels.append(p[1])
                 valores.append(p[4])
         
-        # Obtener ventas de hoy
         try:
             ventas_hoy = conexion.run("SELECT * FROM ventas_dia ORDER BY id DESC")
         except Exception:
             pass
 
-        # Obtener historial permanente
         try:
             historial_permanente = conexion.run("SELECT * FROM historial ORDER BY id DESC")
         except Exception:
@@ -213,14 +220,13 @@ def agregar_producto():
             n=nombre, c=categoria, p=float(precio), q=int(stock), i=ruta_img
         )
         
-        # Registrar en el historial
         try:
             conexion.run(
                 "INSERT INTO historial (accion, detalle, usuario) VALUES ('AGREGAR', :d, :u)",
                 d=f"Se agregó el producto {nombre} con stock inicial de {stock}", u=session.get('usuario')
             )
-        except Exception as err:
-            print(f"Error registrando historial: {err}")
+        except Exception:
+            pass
 
         conexion.close()
         flash('¡Producto agregado exitosamente!', 'success')
@@ -242,7 +248,6 @@ def ajustar_stock(id_prod, accion):
         if accion == 'resta':
             conexion.run("UPDATE productos SET cantidad = cantidad - :q WHERE id = :id", q=cantidad, id=id_prod)
             
-            # Registrar venta y actualizar flujo de caja
             try:
                 res_prod = conexion.run("SELECT nombre, precio FROM productos WHERE id = :id", id=id_prod)
                 if res_prod:
@@ -262,8 +267,8 @@ def ajustar_stock(id_prod, accion):
                         "INSERT INTO historial (accion, detalle, usuario) VALUES ('VENTA', :d, :u)",
                         d=f"Se vendió {cantidad} unidad(es) de {nombre_prod} por un total de ${total_venta}", u=session.get('usuario')
                     )
-            except Exception as err:
-                print(f"Error registrando venta en BD: {err}")
+            except Exception:
+                pass
 
             flash('Venta registrada correctamente.', 'success')
         elif accion == 'suma':
