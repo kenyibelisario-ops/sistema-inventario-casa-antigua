@@ -24,6 +24,18 @@
             letter-spacing: 0.5px;
         }
 
+        /* Contenedor de la barra de búsqueda */
+        .search-container {
+            background-color: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 35px auto;
+        }
+
         .card-custom {
             background-color: #3b2219;
             border: 1px solid #523124;
@@ -96,15 +108,22 @@
 
     <!-- Contenido Principal -->
     <div class="container my-5">
-        <div class="text-center mb-5">
+        <div class="text-center mb-4">
             <h1 class="fw-bold" style="color: #e5c158;">Menú y Disponibilidad en Línea</h1>
             <p class="text-light opacity-75">Explora los productos y artículos de nuestra cafetería en tiempo real</p>
         </div>
 
+        <!-- BARRA DE BÚSQUEDA INTERACTIVA -->
+        <div class="search-container d-flex align-items-center shadow-sm">
+            <span class="me-2 text-warning fs-5">🔍</span>
+            <input type="text" id="inputBuscador" class="form-control bg-transparent border-0 p-0 shadow-none text-white" style="font-size: 0.95rem;" placeholder="Buscar productos por nombre o categoría...">
+        </div>
+
         {% if productos %}
-            <div class="row row-cols-1 row-cols-md-3 g-4">
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="contenedorCatalogo">
                 {% for p in productos %}
-                    <div class="col">
+                    <!-- Agregados los atributos data-nombre y data-categoria para que el buscador filtre -->
+                    <div class="col item-producto" data-nombre="{{ p[1]|lower }}" data-categoria="{{ p[2]|lower }}">
                         <div class="card card-custom h-100">
                             <!-- Imagen del Producto (p[5]) -->
                             {% if p[5] %}
@@ -152,5 +171,23 @@
         <small>&copy; 2026 Café-Casa Antigua. Todos los derechos reservados.</small>
     </footer>
 
+    <!-- SCRIPT DEL BUSCADOR EN TIEMPO REAL -->
+    <script>
+        document.getElementById('inputBuscador').addEventListener('input', function(e) {
+            let termino = e.target.value.toLowerCase().trim();
+            let productos = document.querySelectorAll('.item-producto');
+            
+            productos.forEach(function(producto) {
+                let nombre = producto.getAttribute('data-nombre');
+                let categoria = producto.getAttribute('data-categoria');
+                
+                if (nombre.includes(termino) || categoria.includes(termino)) {
+                    producto.style.setProperty('display', '', 'important');
+                } else {
+                    producto.style.setProperty('display', 'none', 'important');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
