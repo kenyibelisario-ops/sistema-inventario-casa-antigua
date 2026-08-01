@@ -24,7 +24,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Contenedor de la barra de búsqueda */
         .search-container {
             background-color: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -122,10 +121,8 @@
         {% if productos %}
             <div class="row row-cols-1 row-cols-md-3 g-4" id="contenedorCatalogo">
                 {% for p in productos %}
-                    <!-- Agregados los atributos data-nombre y data-categoria para que el buscador filtre -->
                     <div class="col item-producto" data-nombre="{{ p[1]|lower }}" data-categoria="{{ p[2]|lower }}">
                         <div class="card card-custom h-100">
-                            <!-- Imagen del Producto (p[5]) -->
                             {% if p[5] %}
                                 <img src="{{ p[5] }}" class="card-img-top" alt="{{ p[1] }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x200?text=Sin+Imagen+Disponible';">
                             {% else %}
@@ -134,9 +131,7 @@
                             
                             <div class="card-body d-flex flex-column">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <!-- Categoría (p[2]) -->
                                     <span class="badge badge-categoria px-2 py-1">{{ p[2] }}</span>
-                                    <!-- Stock (p[4]) -->
                                     {% if p[4] > 0 %}
                                         <span class="badge bg-success">Stock: {{ p[4] }}</span>
                                     {% else %}
@@ -144,13 +139,10 @@
                                     {% endif %}
                                 </div>
                                 
-                                <!-- Título (p[1]) -->
                                 <h5 class="card-title mt-2">{{ p[1] }}</h5>
                                 
                                 <div class="mt-auto d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
-                                    <!-- Precio (p[3]) -->
                                     <span class="precio-texto">${{ "%.2f"|format(p[3]) }}</span>
-                                    <!-- ID / Referencia (p[0]) -->
                                     <small class="text-muted">Ref: #{{ p[0] }}</small>
                                 </div>
                             </div>
@@ -171,7 +163,7 @@
         <small>&copy; 2026 Café-Casa Antigua. Todos los derechos reservados.</small>
     </footer>
 
-    <!-- SCRIPT DEL BUSCADOR EN TIEMPO REAL -->
+    <!-- SCRIPT DEL BUSCADOR -->
     <script>
         document.getElementById('inputBuscador').addEventListener('input', function(e) {
             let termino = e.target.value.toLowerCase().trim();

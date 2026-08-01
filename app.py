@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash
 import psycopg2
 
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_para_sesiones'  # Necesario para manejar sesiones de usuario
+app.secret_key = 'clave_secreta_super_segura'
 
-# Configura tu conexión a PostgreSQL
 def obtener_conexion():
     return psycopg2.connect(
         host="localhost",
@@ -27,12 +26,11 @@ def login():
             flash("Por favor rellene todos los campos", "danger")
             return redirect(url_for('login'))
         
-        # Conexión a PostgreSQL para verificar el usuario en la base de datos
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             
-            # Ajusta la consulta según el nombre de tu tabla de usuarios/empleados
+            # Consulta a tu base de datos para verificar el usuario y contraseña
             cursor.execute("SELECT id, usuario, rol FROM empleados WHERE usuario = %s AND contrasena = %s;", (usuario, contrasena))
             empleado = cursor.fetchone()
             
@@ -40,41 +38,31 @@ def login():
             conexion.close()
             
             if empleado:
-                # Guardamos los datos en la sesión de Flask
-                session['usuario_id'] = empleado[0]
-                session['usuario_nombre'] = empleado[1]
-                session['rol'] = empleado[2] # Ej: 'admin' o 'empleado'
-                
-                # Redirige al panel de control exitosamente
-                return redirect(url_for('panel_control'))
+                # Si las credenciales son correctas, redirige al catálogo o panel
+                return redirect(url_for('catalogo'))
             else:
                 flash("Usuario o contraseña incorrectos", "danger")
                 return redirect(url_for('login'))
                 
         except Exception as e:
-            flash(f"Error de conexión con la base de datos", "danger")
+            flash("Error conectando con la base de datos", "danger")
             return redirect(url_for('login'))
             
     return render_template('login.html')
 
-@app.route('/panel')
-def panel_control():
-    # Validación simple para asegurar que inició sesión
-    if 'usuario_nombre' not in session:
-        flash("Por favor inicie sesión primero", "danger")
-        return redirect(url_for('login'))
-        
-    return render_template('panel.html') # O la ruta de tu panel actual
-
 @app.route('/catalogo')
 def catalogo():
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT id, nombre, categoria, precio, stock, imagen FROM productos;")
-    productos = cursor.fetchall()
-    cursor.close()
-    conexion.close()
-    
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        # Orden esperado por la plantilla: id(0), nombre(1), categoria(2), precio(3), stock(4), imagen(5)
+        cursor.execute("SELECT id, nombre, categoria, precio, stock, imagen FROM productos;")
+        productos = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+    except:
+        productos = []
+        
     return render_template('catalogo.html', productos=productos)
 
 if __name__ == '__main__':
