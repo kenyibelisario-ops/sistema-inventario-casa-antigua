@@ -95,7 +95,7 @@
         <h3 class="text-center fw-bold mb-1" style="color: #e5c158;">Café-Casa Antigua</h3>
         <p class="text-center text-light opacity-75 mb-4" style="font-size: 0.85rem;">Sistema de Control de Inventario</p>
 
-        <!-- Mensajes de alerta si los hay (ej. error de credenciales o sesión cerrada) -->
+        <!-- Mensajes de Alerta -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -123,7 +123,7 @@
 
         <hr class="border-secondary my-4 opacity-25">
 
-        <!-- BOTÓN PARA IR AL CATÁLOGO DE CLIENTES -->
+        <!-- Botón para ir al Catálogo de Clientes -->
         <div class="d-grid">
             <a href="/catalogo" class="btn btn-outline-dorado text-decoration-none text-center">
                 ← Ver Catálogo en Línea (Clientes)
