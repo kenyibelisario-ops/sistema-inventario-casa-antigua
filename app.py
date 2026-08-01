@@ -1,10 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import psycopg2
 
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_para_mensajes'  # Necesario para las alertas flash
+app.secret_key = 'clave_secreta_para_sesiones'  # Necesario para manejar sesiones de usuario
 
-# Configura tu conexión a PostgreSQL (ajusta tus credenciales si es necesario)
+# Configura tu conexión a PostgreSQL
 def obtener_conexion():
     return psycopg2.connect(
         host="localhost",
@@ -20,33 +20,58 @@ def inicio():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Captura los datos enviados desde el formulario HTML
         usuario = request.form.get('usuario')
         contrasena = request.form.get('contrasena')
         
-        # Validación básica (aquí puedes conectar tu validación con PostgreSQL)
         if not usuario or not contrasena:
             flash("Por favor rellene todos los campos", "danger")
             return redirect(url_for('login'))
         
-        # Ejemplo de validación de credenciales de administrador/empleado
-        # if usuario == "admin" and contrasena == "1234":
-        #     return redirect(url_for('panel_control'))
-        # else:
-        #     flash("Usuario o contraseña incorrectos", "danger")
+        # Conexión a PostgreSQL para verificar el usuario en la base de datos
+        try:
+            conexion = obtener_conexion()
+            cursor = conexion.cursor()
+            
+            # Ajusta la consulta según el nombre de tu tabla de usuarios/empleados
+            cursor.execute("SELECT id, usuario, rol FROM empleados WHERE usuario = %s AND contrasena = %s;", (usuario, contrasena))
+            empleado = cursor.fetchone()
+            
+            cursor.close()
+            conexion.close()
+            
+            if empleado:
+                # Guardamos los datos en la sesión de Flask
+                session['usuario_id'] = empleado[0]
+                session['usuario_nombre'] = empleado[1]
+                session['rol'] = empleado[2] # Ej: 'admin' o 'empleado'
+                
+                # Redirige al panel de control exitosamente
+                return redirect(url_for('panel_control'))
+            else:
+                flash("Usuario o contraseña incorrectos", "danger")
+                return redirect(url_for('login'))
+                
+        except Exception as e:
+            flash(f"Error de conexión con la base de datos", "danger")
+            return redirect(url_for('login'))
             
     return render_template('login.html')
+
+@app.route('/panel')
+def panel_control():
+    # Validación simple para asegurar que inició sesión
+    if 'usuario_nombre' not in session:
+        flash("Por favor inicie sesión primero", "danger")
+        return redirect(url_for('login'))
+        
+    return render_template('panel.html') # O la ruta de tu panel actual
 
 @app.route('/catalogo')
 def catalogo():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    
-    # Consulta a PostgreSQL para el catálogo público
-    # Orden de columnas: id (0), nombre (1), categoria (2), precio (3), stock (4), imagen (5)
     cursor.execute("SELECT id, nombre, categoria, precio, stock, imagen FROM productos;")
     productos = cursor.fetchall()
-    
     cursor.close()
     conexion.close()
     
