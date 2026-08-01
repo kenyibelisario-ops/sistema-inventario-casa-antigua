@@ -17,7 +17,6 @@
             justify-content: center;
             margin: 0;
         }
-
         .login-card {
             background-color: #3b2219;
             border: 1px solid #523124;
@@ -28,7 +27,6 @@
             max-width: 420px;
             padding: 40px;
         }
-
         .form-control {
             background-color: #2e1b14;
             border: 1px solid #523124;
@@ -36,20 +34,17 @@
             border-radius: 8px;
             padding: 12px;
         }
-
         .form-control:focus {
             background-color: #2e1b14;
             border-color: #d4af37;
             color: #ffffff;
             box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
         }
-
         .form-label {
             color: #e5c158;
             font-weight: 600;
             font-size: 0.9rem;
         }
-
         .btn-dorado {
             background-color: #d4af37;
             color: #1a0f0a;
@@ -59,12 +54,10 @@
             padding: 12px;
             transition: background-color 0.2s;
         }
-
         .btn-dorado:hover {
             background-color: #e5c158;
             color: #1a0f0a;
         }
-
         .btn-outline-dorado {
             background-color: transparent;
             color: #d4af37;
@@ -74,13 +67,11 @@
             padding: 10px;
             transition: all 0.2s;
         }
-
         .btn-outline-dorado:hover {
             background-color: rgba(212, 175, 55, 0.1);
             color: #e5c158;
             border-color: #e5c158;
         }
-
         .logo-icono {
             font-size: 2.5rem;
             text-align: center;
@@ -95,7 +86,7 @@
         <h3 class="text-center fw-bold mb-1" style="color: #e5c158;">Café-Casa Antigua</h3>
         <p class="text-center text-light opacity-75 mb-4" style="font-size: 0.85rem;">Sistema de Control de Inventario</p>
 
-        <!-- Mensajes de Alerta dinámicos -->
+        <!-- Mensajes Flash de Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -106,7 +97,7 @@
             {% endif %}
         {% endwith %}
 
-        <!-- Formulario de Login -->
+        <!-- FORMULARIO DE LOGIN -->
         <form action="/login" method="POST">
             <div class="mb-3">
                 <label for="usuario" class="form-label">USUARIO</label>
@@ -123,7 +114,6 @@
 
         <hr class="border-secondary my-4 opacity-25">
 
-        <!-- Botón para ir al Catálogo de Clientes -->
         <div class="d-grid">
             <a href="/catalogo" class="btn btn-outline-dorado text-decoration-none text-center">
                 ← Ver Catálogo en Línea (Clientes)
