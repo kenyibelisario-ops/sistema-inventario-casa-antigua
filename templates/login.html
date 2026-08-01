@@ -4,151 +4,131 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Café-Casa Antigua</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background: linear-gradient(135deg, #2c1d11 0%, #4a3525 100%);
+            background-color: #2e1b14;
+            color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            color: #fff;
+            justify-content: center;
+            margin: 0;
         }
 
-        .login-container {
-            background-color: rgba(255, 255, 255, 0.05);
+        .login-card {
+            background-color: #3b2219;
+            border: 1px solid #523124;
+            border-radius: 16px;
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 420px;
             padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.5);
-            width: 400px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
         }
 
-        .logo-placeholder {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            color: #d4af37; /* Tono dorado/café elegante */
-        }
-
-        h2 {
-            font-weight: 400;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-        }
-
-        p.subtitle {
-            font-size: 0.9rem;
-            color: #bfa38a;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            position: relative;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            color: #cdb49e;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #d4af37;
-            background: rgba(0, 0, 0, 0.4);
-            box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
-        }
-
-        .btn-login {
-            width: 100%;
+        .form-control {
+            background-color: #2e1b14;
+            border: 1px solid #523124;
+            color: #ffffff;
+            border-radius: 8px;
             padding: 12px;
-            background: #d4af37;
-            border: none;
-            border-radius: 6px;
-            color: #2c1d11;
-            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            background-color: #2e1b14;
+            border-color: #d4af37;
+            color: #ffffff;
+            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
+        }
+
+        .form-label {
+            color: #e5c158;
             font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.1s ease;
-            margin-top: 10px;
-        }
-
-        .btn-login:hover {
-            background: #f3cc57;
-        }
-
-        .btn-login:active {
-            transform: scale(0.98);
-        }
-
-        /* Alertas de error de Flask (flash messages) */
-        .flash-messages {
-            background-color: rgba(231, 76, 60, 0.2);
-            border: 1px solid #e74c3c;
-            color: #ea6153;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 20px;
             font-size: 0.9rem;
+        }
+
+        .btn-dorado {
+            background-color: #d4af37;
+            color: #1a0f0a;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-dorado:hover {
+            background-color: #e5c158;
+            color: #1a0f0a;
+        }
+
+        .btn-outline-dorado {
+            background-color: transparent;
+            color: #d4af37;
+            border: 1px solid #d4af37;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline-dorado:hover {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: #e5c158;
+            border-color: #e5c158;
+        }
+
+        .logo-icono {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <!-- Ícono decorativo/Logo -->
-        <div class="logo-placeholder">☕</div>
-        <h2>Café-Casa Antigua</h2>
-        <p class="subtitle">Sistema de Control de Inventario</p>
+    <div class="login-card">
+        <div class="logo-icono">☕</div>
+        <h3 class="text-center fw-bold mb-1" style="color: #e5c158;">Café-Casa Antigua</h3>
+        <p class="text-center text-light opacity-75 mb-4" style="font-size: 0.85rem;">Sistema de Control de Inventario</p>
 
-        <!-- Bloque para mostrar errores si el usuario o contraseña fallan (Flask) -->
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="flash-messages">
-              {% for message in messages %}
-                {{ message }}
-              {% endfor %}
-            </div>
-          {% endif %}
+        <!-- Mensajes de alerta si los hay (ej. error de credenciales o sesión cerrada) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-danger py-2 mb-3 text-center" style="font-size: 0.85rem; background-color: #523124; border-color: #7a4835; color: #ffcccc;" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
 
+        <!-- Formulario de Login -->
         <form action="/login" method="POST">
-            <div class="form-group">
-                <label for="username">Usuario</label>
-                <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required autocomplete="off">
+            <div class="mb-3">
+                <label for="usuario" class="form-label">USUARIO</label>
+                <input type="text" class="form-control" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required autocomplete="off">
             </div>
 
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <div class="mb-4">
+                <label for="contrasena" class="form-label">CONTRASEÑA</label>
+                <input type="password" class="form-control" id="contrasena" name="contrasena" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn-login">Ingresar al Sistema</button>
+            <button type="submit" class="btn btn-dorado w-100 mb-3">Ingresar al Sistema</button>
         </form>
+
+        <hr class="border-secondary my-4 opacity-25">
+
+        <!-- BOTÓN PARA IR AL CATÁLOGO DE CLIENTES -->
+        <div class="d-grid">
+            <a href="/catalogo" class="btn btn-outline-dorado text-decoration-none text-center">
+                ← Ver Catálogo en Línea (Clientes)
+            </a>
+        </div>
     </div>
 
 </body>
