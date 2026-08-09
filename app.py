@@ -1,11 +1,44 @@
+from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+app = Flask(__name__)
+app.secret_key = 'clave_secreta_super_segura'
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+@app.route('/')
+def inicio():
+    return redirect(url_for('login'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Capturamos el usuario ya sea por parámetros GET (en la URL) o POST (formulario)
+    # Capturamos el usuario de inmediato desde la URL (método GET) o formulario (POST)
     usuario = request.args.get('usuario') or request.form.get('usuario')
     
     if usuario:
         session['usuario'] = usuario
-        print(f"¡Inicio de sesión exitoso para: {usuario}! Redirigiendo al catálogo...")
-        return redirect(url_for('catalogo')) # <--- Esto es vital para que brinque al catálogo
+        # Forzamos la redirección inmediata fuera de la página de login
+        return redirect(url_for('catalogo'))
             
     return render_template('login.html')
+
+@app.route('/catalogo')
+def catalogo():
+    # Si intentan entrar directo sin sesión, los mandamos al login
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+        
+    productos = [
+        (1, "Café Americano Tradicional", "Bebidas", 2.50, 15, "https://via.placeholder.com/400x200?text=Cafe+Americano"),
+        (2, "Café Subscription Latte", "Bebidas", 3.75, 10, "https://via.placeholder.com/400x200?text=Latte"),
+        (3, "Tres Leches Casero", "Postres", 4.00, 5, "https://via.placeholder.com/400x200?text=Tres+Leches")
+    ]
+    return render_template('catalogo.html', productos=productos)
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
