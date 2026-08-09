@@ -10,19 +10,23 @@ def inicio():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Obtenemos los valores enviados por el formulario POST
-        usuario = request.form.get('usuario')
-        contrasena = request.form.get('contrasena')
+        # Capturamos usando notación de diccionario para asegurar lectura estricta
+        try:
+            usuario = request.form['usuario']
+            contrasena = request.form['contrasena']
+        except KeyError:
+            flash("Error en los campos del formulario. Intenta de nuevo.", "danger")
+            return redirect(url_for('login'))
         
-        print(f"DEBUG LOGIN -> Usuario recibido: '{usuario}' | Contraseña recibida: '{contrasena}'")
+        print(f"DEBUG LOGIN -> Usuario: '{usuario}' | Contraseña: '{contrasena}'")
         
-        # Validación estricta
-        if not usuario or not contrasena or usuario.strip() == "" or contrasena.strip() == "":
+        # Validación de campos vacíos o espacios en blanco
+        if not usuario.strip() or not contrasena.strip():
             flash("Por favor rellene todos los campos", "danger")
             return redirect(url_for('login'))
         
-        # Guardamos en sesión y redirigimos al catálogo exitosamente
-        session['usuario'] = usuario
+        # Si todo está correcto, guardamos sesión y avanzamos
+        session['usuario'] = usuario.strip()
         return redirect(url_for('catalogo'))
             
     return render_template('login.html')
@@ -35,6 +39,11 @@ def catalogo():
         (3, "Tres Leches Casero", "Postres", 4.00, 5, "https://via.placeholder.com/400x200?text=Tres+Leches")
     ]
     return render_template('catalogo.html', productos=productos)
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
