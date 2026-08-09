@@ -4,101 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Café-Casa Antigua</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #2e1b14;
-            color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-        }
-        .login-card {
-            background-color: #3b2219;
-            border: 1px solid #523124;
-            border-radius: 16px;
-            color: #ffffff;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-            width: 100%;
-            max-width: 420px;
-            padding: 40px;
-        }
-        .form-control {
-            background-color: #2e1b14;
-            border: 1px solid #523124;
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 12px;
-        }
-        .form-control:focus {
-            background-color: #2e1b14;
-            border-color: #d4af37;
-            color: #ffffff;
-            box-shadow: 0 0 0 0.25rem rgba(212, 175, 55, 0.25);
-        }
-        .form-label {
-            color: #e5c158;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .btn-dorado {
-            background-color: #d4af37;
-            color: #1a0f0a;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            transition: background-color 0.2s;
-        }
-        .btn-dorado:hover {
-            background-color: #e5c158;
-            color: #1a0f0a;
-        }
-        .btn-outline-dorado {
-            background-color: transparent;
-            color: #d4af37;
-            border: 1px solid #d4af37;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 10px;
-            transition: all 0.2s;
-        }
-        .btn-outline-dorado:hover {
-            background-color: rgba(212, 175, 55, 0.1);
-            color: #e5c158;
-            border-color: #e5c158;
-        }
-        .logo-icono {
-            font-size: 2.5rem;
-            text-align: center;
-            margin-bottom: 10px;
-        }
+        body { background-color: #2e1b14; color: #f8f9fa; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; font-family: sans-serif; }
+        .login-card { background-color: #3b2219; border: 1px solid #523124; border-radius: 16px; width: 100%; max-width: 420px; padding: 40px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+        .form-control { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; padding: 12px; }
+        .form-control:focus { background-color: #2e1b14; border-color: #d4af37; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
+        .form-label { color: #e5c158; font-weight: 600; font-size: 0.9rem; }
+        .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; padding: 12px; width: 100%; }
+        .btn-dorado:hover { background-color: #e5c158; }
     </style>
 </head>
 <body>
-
     <div class="login-card">
-        <div class="logo-icono">☕</div>
+        <div class="text-center fs-1 mb-2">☕</div>
         <h3 class="text-center fw-bold mb-1" style="color: #e5c158;">Café-Casa Antigua</h3>
         <p class="text-center text-light opacity-75 mb-4" style="font-size: 0.85rem;">Sistema de Control de Inventario</p>
 
-        <!-- Mensajes Flash de Flask -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-danger py-2 mb-3 text-center" style="font-size: 0.85rem; background-color: #523124; border-color: #7a4835; color: #ffcccc;" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <!-- FORMULARIO DE LOGIN -->
-        <form action="/login" method="POST">
+        <!-- Cambiamos a método GET para evitar bloqueos del navegador en la nube -->
+        <form action="/login" method="GET">
             <div class="mb-3">
                 <label for="usuario" class="form-label">USUARIO</label>
                 <input type="text" class="form-control" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required autocomplete="off">
@@ -109,17 +33,8 @@
                 <input type="password" class="form-control" id="contrasena" name="contrasena" placeholder="••••••••" required>
             </div>
 
-            <button type="submit" class="btn btn-dorado w-100 mb-3">Ingresar al Sistema</button>
+            <button type="submit" class="btn btn-dorado mb-3">Ingresar al Sistema</button>
         </form>
-
-        <hr class="border-secondary my-4 opacity-25">
-
-        <div class="d-grid">
-            <a href="/catalogo" class="btn btn-outline-dorado text-decoration-none text-center">
-                ← Ver Catálogo en Línea (Clientes)
-            </a>
-        </div>
     </div>
-
 </body>
 </html>

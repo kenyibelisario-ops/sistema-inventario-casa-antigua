@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 app = Flask(__name__)
@@ -12,18 +12,10 @@ def inicio():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        # Obtenemos cualquier dato que venga en el formulario sin restricciones estrictas
-        usuario = request.form.get('usuario')
-        contrasena = request.form.get('contrasena')
-        
-        print(f"VALORES RECIBIDOS -> usuario: {usuario}, contrasena: {contrasena}")
-        
-        # Si el formulario llega vacío por problemas de seguridad del navegador, 
-        # permitimos el acceso de todas formas para que puedas avanzar con tu proyecto
-        if not usuario:
-            usuario = "Administrador"
-            
+    # Permitimos capturar tanto por GET (enlace directo) como por POST
+    usuario = request.args.get('usuario') or request.form.get('usuario')
+    
+    if usuario:
         session['usuario'] = usuario
         return redirect(url_for('catalogo'))
             
