@@ -209,36 +209,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    @app.route('/limpiar-base-datos-antigua')
-def limpiar_bd():
-    if session.get('rol') == 'admin':
-        conexion = None
-        try:
-            conexion = obtener_conexion()
-            cursor = conexion.cursor()
-            
-            cursor.execute("DELETE FROM ventas_diarias;")
-            cursor.execute("DELETE FROM historial;")
-            cursor.execute("DELETE FROM productos;")
-            
-            conexion.commit()
-            cursor.close()
-            
-            return """
-            <div style="font-family: Arial; text-align: center; margin-top: 50px; background: #2e1b14; color: #fff; padding: 40px; border-radius: 10px; width: 50%; margin-left: auto; margin-right: auto; border: 2px solid #d4af37;">
-                <h2 style="color: #25d366;">✅ Base de datos limpiada con éxito</h2>
-                <p>El historial y los productos antiguos han sido eliminados correctamente del sistema.</p>
-                <br>
-                <a href="/catalogo" style="padding: 12px 25px; background: #d4af37; color: #1a0f0a; font-weight: bold; text-decoration: none; border-radius: 8px;">Ir al Catálogo</a>
-            </div>
-            """
-        except Exception as e:
-            return f"<h3 style='color: red; text-align: center; margin-top: 50px;'>❌ Ocurrió un error al limpiar la base de datos: {e}</h3>"
-        finally:
-            if conexion:
-                conexion.close()
-    else:
-        return "<h3 style='color: red; text-align: center; margin-top: 50px;'>⛔ Acceso denegado. Debes iniciar sesión como Administrador para realizar esta acción.</h3>", 403
-    
-    
-    
