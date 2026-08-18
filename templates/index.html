@@ -62,8 +62,12 @@
                             <label class="form-label">Stock</label>
                             <input type="number" class="form-control" name="stock" placeholder="0" required>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-dorado w-100">Guardar</button>
+                        <div class="col-md-2">
+                            <label class="form-label">URL Imagen</label>
+                            <input type="text" class="form-control" name="imagen" placeholder="https://...">
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-dorado px-4">Guardar Producto</button>
                         </div>
                     </form>
                 </div>
@@ -75,6 +79,7 @@
                     <div class="col-md-6">
                         <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
                             <div>
+                                <img src="{{ prod.imagen }}" class="rounded mb-2 w-100" alt="{{ prod.nombre }}" style="height: 120px; object-fit: cover;">
                                 <span class="badge-categoria">{{ prod.categoria }}</span>
                                 <h5 class="fw-bold mt-2">{{ prod.nombre }}</h5>
                                 <h4 class="text-dorado">${{ "%.2f"|format(prod.precio) }}</h4>

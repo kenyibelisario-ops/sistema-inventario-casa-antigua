@@ -101,11 +101,16 @@ def agregar():
         
     nombre = request.form.get('nombre')
     categoria = request.form.get('categoria', 'GENERAL').upper()
+    imagen = request.form.get('imagen', '').strip()
+    
     try:
         precio = float(request.form.get('precio', 0))
         stock = int(request.form.get('stock', 0))
     except ValueError:
         precio, stock = 0.0, 0
+    
+    if not imagen:
+        imagen = "https://via.placeholder.com/400x200?text=" + nombre.replace(" ", "+")
     
     if nombre:
         nuevo_id = max([p['id'] for p in inventario_productos], default=0) + 1
@@ -115,7 +120,7 @@ def agregar():
             "categoria": categoria,
             "precio": precio,
             "stock": stock,
-            "imagen": "https://via.placeholder.com/400x200?text=" + nombre.replace(" ", "+")
+            "imagen": imagen
         })
         
         historial_permanente.insert(0, {
