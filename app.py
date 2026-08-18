@@ -209,3 +209,62 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    import pg8000
+from flask import Flask, session
+
+app = Flask(__name__)
+# Recuerda que debes tener configurada tu app.secret_key para que 'session' funcione
+app.secret_key = 'tu_clave_secreta_aqui'
+
+# Función de conexión a tu base de datos casaantigua_db
+def obtener_conexion():
+    return pg8000.connect(
+        user="tu_usuario_postgres",      # Cambia por tu usuario
+        password="tu_password",          # Cambia por tu contraseña
+        host="localhost",                # O la URL de Render si está en la nube
+        database="casaantigua_db",
+        port=5432
+    )
+
+# --- TUS OTRAS RUTAS AQUÍ (/catalogo, /login, etc.) ---
+
+@app.route('/limpiar-base-datos-antigua')
+def limpiar_bd():
+    # Medida de seguridad: Validar que solo el administrador pueda borrar datos
+    if session.get('rol') == 'admin':
+        conexion = None
+        try:
+            # 1. Establecer conexión
+            conexion = obtener_conexion()
+            cursor = conexion.cursor()
+            
+            # 2. Ejecutar las sentencias de limpieza
+            cursor.execute("DELETE FROM ventas_diarias;")
+            cursor.execute("DELETE FROM historial;")
+            cursor.execute("DELETE FROM productos;")
+            
+            # 3. Confirmar (commit) los cambios en la base de datos
+            conexion.commit()
+            cursor.close()
+            
+            return """
+            <div style="font-family: Arial; text-align: center; margin-top: 50px;">
+                <h2 style="color: #25d366;">✅ Base de datos limpiada con éxito</h2>
+                <p>El historial y los productos antiguos han sido eliminados del sistema.</p>
+                <a href="/catalogo" style="padding: 10px 20px; background: #d4af37; color: #000; text-decoration: none; border-radius: 5px;">Volver al Catálogo</a>
+            </div>
+            """
+            
+        except Exception as e:
+            # Si ocurre algún error en la base de datos, lo mostramos
+            return f"<h3 style='color: red;'>❌ Ocurrió un error al limpiar la BD: {e}</h3>"
+            
+        finally:
+            # 4. Asegurarnos de cerrar la conexión siempre
+            if conexion:
+                conexion.close()
+    else:
+        return "<h3 style='color: red;'>⛔ Acceso denegado. Debes iniciar sesión como Administrador.</h3>", 403
+
+if __name__ == '__main__':
+    app.run(debug=True)
