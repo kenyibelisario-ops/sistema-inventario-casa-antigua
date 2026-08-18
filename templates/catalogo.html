@@ -38,8 +38,8 @@
             position: fixed;
             bottom: 25px;
             right: 25px;
-            width: 320px;
-            max-height: 450px;
+            width: 330px;
+            max-height: 480px;
             background-color: #3b2219;
             border: 2px solid #d4af37;
             border-radius: 12px;
@@ -94,12 +94,20 @@
                         <h4 class="fw-bold mb-1">{{ prod.nombre }}</h4>
                         <h3 class="text-dorado mb-3">${{ "%.2f"|format(prod.precio) }}</h3>
                     </div>
+                    
                     <div>
-                        <!-- Botón para agregar al carrito con atributos de datos -->
+                        <!-- Selector de cantidad personalizado por producto -->
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <label class="text-light m-0" style="font-size: 0.85rem;">Cantidad:</label>
+                            <input type="number" id="input-cant-{{ prod.id }}" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 80px;">
+                        </div>
+                        <!-- Botón para agregar al carrito -->
                         <button class="btn btn-dorado w-100 agregar-carrito" 
                                 data-nombre="{{ prod.nombre }}" 
                                 data-precio="{{ prod.precio }}" 
-                                data-categoria="{{ prod.categoria }}">
+                                data-categoria="{{ prod.categoria }}"
+                                data-stock="{{ prod.stock }}"
+                                data-inputid="input-cant-{{ prod.id }}">
                             🛒 Agregar al carrito
                         </button>
                     </div>
@@ -124,7 +132,7 @@
             <button class="btn-close btn-close-white btn-sm" onclick="cerrarCarrito()"></button>
         </div>
         <ul id="lista-carrito" class="list-unstyled mb-3" style="font-size: 0.85rem;">
-            <!-- Aquí se cargan dinámicamente los productos -->
+            <!-- Productos agregados -->
         </ul>
         <div class="border-top pt-2 border-secondary mb-3">
             <div class="d-flex justify-content-between fw-bold">
@@ -137,7 +145,7 @@
         </button>
     </div>
 
-    <!-- Script de lógica del Carrito y WhatsApp -->
+    <!-- Script de lógica con selector de cantidad y ortografía corregida -->
     <script>
         let carrito = [];
 
@@ -146,13 +154,31 @@
                 const nombre = button.dataset.nombre;
                 const precio = parseFloat(button.dataset.precio);
                 const categoria = button.dataset.categoria;
+                const stockMax = parseInt(button.dataset.stock);
+                
+                const inputId = button.dataset.inputId;
+                const inputCantidad = document.getElementById(button.dataset.inputid);
+                let cantidadDeseada = parseInt(inputCantidad.value);
 
-                // Verificar si ya está en el carrito para aumentar cantidad o agregarlo nuevo
+                if (isNaN(cantidadDeseada) || cantidadDeseada < 1) {
+                    cantidadDeseada = 1;
+                }
+
+                // Verificar si ya existe en el carrito
                 const index = carrito.findIndex(item => item.nombre === nombre);
                 if (index !== -1) {
-                    carrito[index].cantidad += 1;
+                    let nuevaCantidad = carrito[index].cantidad + cantidadDeseada;
+                    if (nuevaCantidad > stockMax) {
+                        alert(`Lo sentimos, la cantidad total excede el stock disponible (${stockMax}).`);
+                        nuevaCantidad = stockMax;
+                    }
+                    carrito[index].cantidad = nuevaCantidad;
                 } else {
-                    carrito.push({ nombre, precio, categoria, cantidad: 1 });
+                    if (cantidadDeseada > stockMax) {
+                        alert(`La cantidad seleccionada supera el stock disponible (${stockMax}).`);
+                        cantidadDeseada = stockMax;
+                    }
+                    carrito.push({ nombre, precio, categoria, cantidad: cantidadDeseada });
                 }
 
                 document.getElementById('carrito-flotante').style.display = 'block';
@@ -167,7 +193,7 @@
             let totalGeneral = 0;
 
             if (carrito.length === 0) {
-                lista.innerHTML = '<li class="text-muted text-center py-2">El carrito está vacío</li>';
+                lista.innerHTML = '<li class="text-muted text-center py-2">El carrito está vacío.</li>';
                 totalSpan.textContent = '$0.00';
                 return;
             }
@@ -183,7 +209,7 @@
                             <span class="text-dorado">$${subtotal.toFixed(2)}</span>
                         </div>
                         <div class="text-light opacity-75" style="font-size: 0.75rem;">
-                            Categoría: ${item.categoria} | Cant: ${item.cantidad}
+                            Categoría: ${item.categoria} | Cantidad: ${item.cantidad}
                         </div>
                         <div class="text-end mt-1">
                             <button class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">Eliminar</button>
@@ -210,10 +236,10 @@
         function enviarWhatsApp() {
             if (carrito.length === 0) return;
 
-            // REEMPLAZAR EL NUMERO DE ABAJO CON NUMERO QUE SE VA A UTILIZAR DE WHATSAPP (Codigo de pais + numero)
-            const telefono = "+584247488617"; 
+            // REEMPLAZA EL NÚMERO DE ABAJO CON TU NÚMERO REAL DE WHATSAPP (Código de país + número)
+            const telefono = "584120000000"; 
 
-            let mensaje = "Hola, ¡quiero realizar el siguiente pedido desde el Catálogo Online!:%0A%0A";
+            let mensaje = "Hola, deseo realizar el siguiente pedido desde el Catálogo Online:%0A%0A";
             let totalGeneral = 0;
 
             carrito.forEach(item => {
