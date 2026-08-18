@@ -15,18 +15,20 @@
         .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
-        .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
-        /* Contenedor optimizado para que las imágenes se vean completas y nítidas sin distorsionarse */
+        .text-claro-sub { color: rgba(255, 255, 255, 0.75) !important; }
+        .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; }
+        
+        /* Contenedor e imágenes de productos más compactos */
         .img-producto-container {
             width: 100%;
-            height: 140px;
+            height: 110px;
             background-color: #26140e;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border: 1px solid #523124;
         }
         .img-producto {
@@ -41,7 +43,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
                 <h3 class="fw-bold text-dorado m-0">☕ Sistema de Gestión - Café-Casa Antigua</h3>
-                <p class="text-light opacity-75 m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
+                <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
             </div>
             <div class="d-flex gap-2">
                 <a href="/catalogo" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">Ver Catálogo Público</a>
@@ -49,6 +51,7 @@
             </div>
         </div>
 
+        <!-- Buscador general de productos -->
         <div class="card-cafe p-3 mb-4">
             <form method="GET" action="/panel" class="input-group">
                 <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
@@ -60,6 +63,7 @@
         </div>
 
         <div class="row g-4">
+            <!-- Columna Izquierda: Productos -->
             <div class="col-lg-8">
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3 mb-4">
@@ -95,33 +99,34 @@
                 <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
                 <div class="row g-3">
                     {% for prod in productos %}
-                    <div class="col-md-6">
-                        <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
+                    <div class="col-md-6 col-xl-4">
+                        <!-- Tarjeta ligeramente más compacta -->
+                        <div class="card-cafe p-2 h-100 d-flex flex-column justify-content-between" style="font-size: 0.9rem;">
                             <div>
                                 <div class="img-producto-container">
                                     <img src="{{ prod.imagen }}" class="img-producto" alt="{{ prod.nombre }}">
                                 </div>
                                 <span class="badge-categoria">{{ prod.categoria }}</span>
-                                <h5 class="fw-bold mt-2">{{ prod.nombre }}</h5>
-                                <h4 class="text-dorado">${{ "%.2f"|format(prod.precio) }}</h4>
-                                <p class="text-light opacity-75 mb-3" style="font-size: 0.85rem;">Unidades disponibles: {{ prod.stock }}</p>
+                                <h6 class="fw-bold mt-2 mb-1">{{ prod.nombre }}</h6>
+                                <h5 class="text-dorado mb-1">${{ "%.2f"|format(prod.precio) }}</h5>
+                                <p class="text-claro-sub mb-2" style="font-size: 0.8rem;">Disponibles: {{ prod.stock }}</p>
                                 {% if prod.stock <= 5 %}
-                                <div class="badge bg-danger mb-2">STOCK CRÍTICO</div>
+                                <div class="badge bg-danger mb-2" style="font-size: 0.65rem;">STOCK CRÍTICO</div>
                                 {% endif %}
                             </div>
                             <div>
-                                <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-2 mb-2">
-                                    <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 70px;">
-                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold" style="background-color: #198754; border: none;">REGISTRAR VENTA</button>
+                                <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
+                                    <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
+                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-1" style="background-color: #198754; border: none; font-size: 0.75rem;">VENDER</button>
                                 </form>
-                                <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-2 mb-2">
-                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 70px;">
-                                    <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124;">+ INCREMENTAR STOCK</button>
+                                <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
+                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
+                                    <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold py-1" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124; font-size: 0.75rem;">+ STOCK</button>
                                 </form>
                                 
                                 {% if session.get('rol') == 'admin' %}
                                 <div class="text-end">
-                                    <a href="/eliminar/{{ prod.id }}" class="text-danger text-decoration-none" style="font-size: 0.8rem;">ELIMINAR DE CATÁLOGO</a>
+                                    <a href="/eliminar/{{ prod.id }}" class="text-danger text-decoration-none" style="font-size: 0.75rem;">ELIMINAR</a>
                                 </div>
                                 {% endif %}
                             </div>
@@ -135,11 +140,12 @@
                 </div>
             </div>
 
+            <!-- Columna Derecha: Control de Caja Diaria y Gráfica -->
             <div class="col-lg-4 d-flex flex-column gap-4">
                 <div class="card-cafe p-3">
                     <h6 class="text-dorado mb-2 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
                     <div class="p-3 mb-3 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <p class="mb-1 text-light opacity-75" style="font-size: 0.85rem;">Dinero Ingresado Hoy:</p>
+                        <p class="mb-1 text-claro-sub" style="font-size: 0.85rem;">Dinero Ingresado Hoy:</p>
                         <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
                     </div>
                     
@@ -147,15 +153,16 @@
                         <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
                     </div>
                     
-                    <h6 class="text-light opacity-75 mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
+                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
                     <div class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
                         {% for v in ventas_del_dia %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
                             <div class="d-flex justify-content-between fw-bold">
-                                <span>{{ v.producto }} (x{{ v.cantidad }})</span>
+                                <span class="text-light">{{ v.producto }} (x{{ v.cantidad }})</span>
                                 <span class="text-success">+${{ "%.2f"|format(v.total) }}</span>
                             </div>
-                            <div class="text-muted" style="font-size: 0.75rem;">Atendido por: {{ v.usuario }}</div>
+                            <!-- Color corregido y legible para el nombre de quien realizó la venta -->
+                            <div class="text-claro-sub" style="font-size: 0.75rem;">Atendido por: <strong class="text-warning">{{ v.usuario }}</strong></div>
                         </div>
                         {% else %}
                         <p class="text-muted text-center m-0" style="font-size: 0.8rem;">Sin ventas registradas hoy.</p>
@@ -171,9 +178,11 @@
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
                             <div class="d-flex justify-content-between">
                                 <span class="fw-bold text-warning">[{{ item.accion }}] {{ item.producto }}</span>
-                                <span class="text-muted">{{ item.fecha }}</span>
+                                <!-- Color corregido y legible para la fecha -->
+                                <span class="text-claro-sub" style="font-size: 0.75rem;">{{ item.fecha }}</span>
                             </div>
-                            <div>Cant: {{ item.cantidad }} | Responsable: <strong>{{ item.usuario }}</strong></div>
+                            <!-- Color corregido y legible para el responsable -->
+                            <div class="text-claro-sub">Cant: {{ item.cantidad }} | Responsable: <strong class="text-light">{{ item.usuario }}</strong></div>
                         </div>
                         {% endfor %}
                     </div>
@@ -186,7 +195,6 @@
     <script>
         const ctx = document.getElementById('graficaVentas').getContext('2d');
         
-        // Agrupamos las ventas del día por producto
         const ventasData = {};
         {% for v in ventas_del_dia %}
             if (ventasData["{{ v.producto }}"]) {
