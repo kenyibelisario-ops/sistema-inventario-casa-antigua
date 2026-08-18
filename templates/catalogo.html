@@ -14,6 +14,7 @@
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
         .badge-stock { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        
         .img-catalogo-container {
             width: 100%;
             height: 180px;
@@ -30,6 +31,23 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+        }
+
+        /* Estilos de la ventana flotante del Carrito */
+        #carrito-flotante {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 320px;
+            max-height: 450px;
+            background-color: #3b2219;
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            padding: 15px;
+            display: none;
+            z-index: 1050;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.7);
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -64,16 +82,27 @@
         <div class="row g-4">
             {% for prod in productos %}
             <div class="col-md-4">
-                <div class="card-cafe p-3 h-100">
-                    <div class="img-catalogo-container">
-                        <img src="{{ prod.imagen }}" class="img-catalogo" alt="{{ prod.nombre }}">
+                <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="img-catalogo-container">
+                            <img src="{{ prod.imagen }}" class="img-catalogo" alt="{{ prod.nombre }}">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge-stock">{{ prod.categoria }}</span>
+                            <span class="badge-stock">Stock: {{ prod.stock }}</span>
+                        </div>
+                        <h4 class="fw-bold mb-1">{{ prod.nombre }}</h4>
+                        <h3 class="text-dorado mb-3">${{ "%.2f"|format(prod.precio) }}</h3>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge-stock">{{ prod.categoria }}</span>
-                        <span class="badge-stock">Stock: {{ prod.stock }}</span>
+                    <div>
+                        <!-- Botón para agregar al carrito con atributos de datos -->
+                        <button class="btn btn-dorado w-100 agregar-carrito" 
+                                data-nombre="{{ prod.nombre }}" 
+                                data-precio="{{ prod.precio }}" 
+                                data-categoria="{{ prod.categoria }}">
+                            🛒 Agregar al carrito
+                        </button>
                     </div>
-                    <h4 class="fw-bold mb-1">{{ prod.nombre }}</h4>
-                    <h3 class="text-dorado mb-0">${{ "%.2f"|format(prod.precio) }}</h3>
                 </div>
             </div>
             {% else %}
@@ -87,5 +116,120 @@
             © 2026 Café-Casa Antigua. Todos los derechos reservados.
         </footer>
     </div>
+
+    <!-- Ventana Flotante del Carrito -->
+    <div id="carrito-flotante">
+        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 border-secondary">
+            <h5 class="text-dorado m-0 fw-bold">🛒 Tu Carrito</h5>
+            <button class="btn-close btn-close-white btn-sm" onclick="cerrarCarrito()"></button>
+        </div>
+        <ul id="lista-carrito" class="list-unstyled mb-3" style="font-size: 0.85rem;">
+            <!-- Aquí se cargan dinámicamente los productos -->
+        </ul>
+        <div class="border-top pt-2 border-secondary mb-3">
+            <div class="d-flex justify-content-between fw-bold">
+                <span>Total estimado:</span>
+                <span id="total-carrito" class="text-success">$0.00</span>
+            </div>
+        </div>
+        <button class="btn btn-success w-100 fw-bold" style="background-color: #25d366; border: none;" onclick="enviarWhatsApp()">
+            📲 Comprar / Pagar por WhatsApp
+        </button>
+    </div>
+
+    <!-- Script de lógica del Carrito y WhatsApp -->
+    <script>
+        let carrito = [];
+
+        document.querySelectorAll('.agregar-carrito').forEach(button => {
+            button.addEventListener('click', () => {
+                const nombre = button.dataset.nombre;
+                const precio = parseFloat(button.dataset.precio);
+                const categoria = button.dataset.categoria;
+
+                // Verificar si ya está en el carrito para aumentar cantidad o agregarlo nuevo
+                const index = carrito.findIndex(item => item.nombre === nombre);
+                if (index !== -1) {
+                    carrito[index].cantidad += 1;
+                } else {
+                    carrito.push({ nombre, precio, categoria, cantidad: 1 });
+                }
+
+                document.getElementById('carrito-flotante').style.display = 'block';
+                actualizarCarritoUI();
+            });
+        });
+
+        function actualizarCarritoUI() {
+            const lista = document.getElementById('lista-carrito');
+            const totalSpan = document.getElementById('total-carrito');
+            lista.innerHTML = '';
+            let totalGeneral = 0;
+
+            if (carrito.length === 0) {
+                lista.innerHTML = '<li class="text-muted text-center py-2">El carrito está vacío</li>';
+                totalSpan.textContent = '$0.00';
+                return;
+            }
+
+            carrito.forEach((item, index) => {
+                let subtotal = item.precio * item.cantidad;
+                totalGeneral += subtotal;
+
+                lista.innerHTML += `
+                    <li class="mb-2 p-2 rounded" style="background-color: #26140e; border: 1px solid #523124;">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>${item.nombre}</span>
+                            <span class="text-dorado">$${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="text-light opacity-75" style="font-size: 0.75rem;">
+                            Categoría: ${item.categoria} | Cant: ${item.cantidad}
+                        </div>
+                        <div class="text-end mt-1">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            totalSpan.textContent = `$${totalGeneral.toFixed(2)}`;
+        }
+
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            actualizarCarritoUI();
+            if (carrito.length === 0) {
+                document.getElementById('carrito-flotante').style.display = 'none';
+            }
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('carrito-flotante').style.display = 'none';
+        }
+
+        function enviarWhatsApp() {
+            if (carrito.length === 0) return;
+
+            // REEMPLAZA EL NUMERO DE ABAJO CON TU NUMERO REAL DE WHATSAPP (Codigo de pais + numero)
+            const telefono = "+584162464992"; 
+
+            let mensaje = "Hola, ¡quiero realizar el siguiente pedido desde el Catálogo Online!:%0A%0A";
+            let totalGeneral = 0;
+
+            carrito.forEach(item => {
+                let subtotal = item.precio * item.cantidad;
+                totalGeneral += subtotal;
+                mensaje += `▪️ *${item.nombre}*%0A`;
+                mensaje += `   - Categoría: ${item.categoria}%0A`;
+                mensaje += `   - Cantidad: ${item.cantidad}%0A`;
+                mensaje += `   - Precio unitario: $${item.precio.toFixed(2)}%0A`;
+                mensaje += `   - Subtotal: $${subtotal.toFixed(2)}%0A%0A`;
+            });
+
+            mensaje += `💰 *Total a pagar: $${totalGeneral.toFixed(2)}*`;
+
+            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+        }
+    </script>
 </body>
 </html>
