@@ -14,6 +14,23 @@
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
         .badge-stock { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        .img-catalogo-container {
+            width: 100%;
+            height: 180px;
+            background-color: #26140e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #523124;
+        }
+        .img-catalogo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -48,7 +65,9 @@
             {% for prod in productos %}
             <div class="col-md-4">
                 <div class="card-cafe p-3 h-100">
-                    <img src="{{ prod.imagen }}" class="card-img-top rounded mb-3" alt="{{ prod.nombre }}" style="height: 160px; object-fit: cover;">
+                    <div class="img-catalogo-container">
+                        <img src="{{ prod.imagen }}" class="img-catalogo" alt="{{ prod.nombre }}">
+                    </div>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="badge-stock">{{ prod.categoria }}</span>
                         <span class="badge-stock">Stock: {{ prod.stock }}</span>

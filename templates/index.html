@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión - Café-Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #2e1b14; color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
         .card-cafe { background-color: #3b2219; border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -15,6 +16,24 @@
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
         .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        /* Contenedor optimizado para que las imágenes se vean completas y nítidas sin distorsionarse */
+        .img-producto-container {
+            width: 100%;
+            height: 140px;
+            background-color: #26140e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 1px solid #523124;
+        }
+        .img-producto {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +98,9 @@
                     <div class="col-md-6">
                         <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
                             <div>
-                                <img src="{{ prod.imagen }}" class="rounded mb-2 w-100" alt="{{ prod.nombre }}" style="height: 120px; object-fit: cover;">
+                                <div class="img-producto-container">
+                                    <img src="{{ prod.imagen }}" class="img-producto" alt="{{ prod.nombre }}">
+                                </div>
                                 <span class="badge-categoria">{{ prod.categoria }}</span>
                                 <h5 class="fw-bold mt-2">{{ prod.nombre }}</h5>
                                 <h4 class="text-dorado">${{ "%.2f"|format(prod.precio) }}</h4>
@@ -122,8 +143,12 @@
                         <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
                     </div>
                     
+                    <div class="mb-3 p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
+                        <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
+                    </div>
+                    
                     <h6 class="text-light opacity-75 mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
-                    <div class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+                    <div class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
                         {% for v in ventas_del_dia %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
                             <div class="d-flex justify-content-between fw-bold">
@@ -141,7 +166,7 @@
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3">
                     <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE (AUDITORÍA GENERAL)</h6>
-                    <div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                    <div class="d-flex flex-column gap-2" style="max-height: 220px; overflow-y: auto;">
                         {% for item in historial_permanente %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
                             <div class="d-flex justify-content-between">
@@ -157,5 +182,53 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const ctx = document.getElementById('graficaVentas').getContext('2d');
+        
+        // Agrupamos las ventas del día por producto
+        const ventasData = {};
+        {% for v in ventas_del_dia %}
+            if (ventasData["{{ v.producto }}"]) {
+                ventasData["{{ v.producto }}"] += {{ v.total }};
+            } else {
+                ventasData["{{ v.producto }}"] = {{ v.total }};
+            }
+        {% endfor %}
+
+        const labels = Object.keys(ventasData);
+        const dataValues = Object.values(ventasData);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.length > 0 ? labels : ['Sin ventas'],
+                datasets: [{
+                    label: 'Ventas en $',
+                    data: dataValues.length > 0 ? dataValues : [0],
+                    backgroundColor: '#d4af37',
+                    borderColor: '#e5c158',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: '#f8f9fa' },
+                        grid: { color: '#523124' }
+                    },
+                    x: {
+                        ticks: { color: '#f8f9fa' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
