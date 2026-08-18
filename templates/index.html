@@ -5,278 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión - Café-Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: linear-gradient(135deg, #2c1d11 0%, #4a3525 100%); min-height: 100vh; color: #fff; }
-        .navbar-custom { background-color: rgba(0, 0, 0, 0.4); padding: 15px 30px; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .navbar-brand-custom { color: #d4af37 !important; font-weight: bold; font-size: 1.4rem; letter-spacing: 1px; text-transform: uppercase; }
-        .nav-link-sub { color: #bfa38a !important; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-left: 15px; text-decoration: none; }
-        .rol-text { color: #cdb49e; font-weight: bold; font-size: 0.9rem; margin-right: 15px; text-transform: uppercase; }
-        .btn-logout { background-color: rgba(231, 76, 60, 0.3); color: #fff; border: 1px solid #e74c3c; border-radius: 8px; font-weight: bold; font-size: 0.9rem; padding: 6px 15px; transition: background 0.2s; text-decoration: none;}
-        .btn-logout:hover { background-color: #e74c3c; color: #fff; }
-        .panel-central, .panel-derecho { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3); }
-        .panel-title { font-weight: bold; color: #d4af37; font-size: 1.3rem; }
-        .panel-subtitle { color: #bfa38a; font-size: 0.85rem; margin-bottom: 20px; }
-        .form-label-custom { font-size: 0.8rem; font-weight: bold; color: #cdb49e; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px; }
-        .form-control-custom { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 10px; font-size: 0.9rem; color: #fff; }
-        .form-control-custom:focus { background: rgba(0, 0, 0, 0.4); border-color: #d4af37; box-shadow: 0 0 8px rgba(212, 175, 55, 0.3); color: #fff; }
-        .form-control-custom::placeholder { color: rgba(255, 255, 255, 0.4); }
-        .btn-publicar { background-color: #d4af37; color: #2c1d11; border: none; border-radius: 8px; width: 100%; padding: 12px; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; transition: background 0.3s ease; }
-        .btn-publicar:hover { background-color: #f3cc57; }
-        .search-container { background-color: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border-radius: 12px; padding: 12px 20px; border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; margin-bottom: 25px; }
-        .card-producto { background-color: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 15px; height: 100%; }
-        .img-container { background-color: rgba(255, 255, 255, 0.9); border-radius: 10px; overflow: hidden; height: 190px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-        .img-container img { max-height: 100%; max-width: 100%; object-fit: contain; }
-        .badge-categoria { background-color: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.4); font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 5px; text-transform: uppercase; display: inline-block; margin-bottom: 8px; }
-        .prod-title { font-weight: bold; color: #fff; font-size: 1.1rem; margin-bottom: 2px; }
-        .prod-price { font-weight: bold; color: #d4af37; font-size: 1.25rem; margin-bottom: 2px; }
-        .prod-stock { color: #cdb49e; font-size: 0.85rem; margin-bottom: 15px; }
-        .btn-venta { background-color: #2a9d8f; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; }
-        .btn-venta:hover { background-color: #35bdae; }
-        .btn-stock-add { background-color: transparent; color: #d4af37; border: 1px solid #d4af37; border-radius: 6px; font-weight: bold; font-size: 0.85rem; padding: 8px; width: 100%; text-transform: uppercase; transition: background 0.2s; }
-        .btn-stock-add:hover { background-color: rgba(212, 175, 55, 0.1); }
-        .btn-eliminar-cat { color: #ea6153; background: none; border: none; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-decoration: none; display: block; text-align: center; margin-top: 10px; }
-        .btn-eliminar-cat:hover { color: #ff7666; }
-        .audit-container { max-height: 300px; overflow-y: auto; background-color: rgba(0, 0, 0, 0.2); border-radius: 10px; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .audit-item { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 5px; font-size: 0.85rem; color: #fff; }
-        .text-caja-total { color: #f3cc57 !important; }
-        .btn-reporte-word { color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05); transition: background 0.2s; }
-        .btn-reporte-word:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
-        .nav-tabs-custom { display: flex; border-bottom: 2px solid rgba(255, 255, 255, 0.1); margin-bottom: 15px; gap: 10px; }
-        .tab-button { background: none; border: none; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: #bfa38a; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab-button.active { color: #d4af37; border-bottom: 2px solid #d4af37; }
+        body { background-color: #2e1b14; color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .card-cafe { background-color: #3b2219; border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .form-control, .form-select { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
+        .form-control:focus, .form-select:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
+        .form-label { color: #e5c158; font-weight: 600; }
+        .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
+        .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
+        .text-dorado { color: #e5c158 !important; }
+        .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
     </style>
 </head>
 <body>
-
-    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
-        <div class="container-fluid">
-            <div class="d-flex align-items-center">
-                <a class="navbar-brand-custom" href="#">☕ Café-Casa Antigua</a>
-                <a href="#" class="nav-link-sub">Catálogo & PostgreSQL</a>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
+            <div>
+                <h3 class="fw-bold text-dorado m-0">☕ Sistema de Gestión - Café-Casa Antigua</h3>
+                <p class="text-light opacity-75 m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
             </div>
-            <div class="ms-auto d-flex align-items-center">
-                <span class="rol-text">Rol: {{ rol }}</span>
-                <a href="/logout" class="btn-logout">Cerrar Sesión X</a>
+            <div class="d-flex gap-2">
+                <a href="/catalogo" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">Ver Catálogo Público</a>
+                <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
-    </nav>
 
-    <div class="container-fluid px-4">
-        
-        <!-- BLOQUE DE MENSAJES FLASH -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show mt-2" role="alert" style="border-radius: 8px;">
-                        <strong>{{ '¡Éxito!' if category == 'success' else 'Atención:' }}</strong> {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <div class="card-cafe p-3 mb-4">
+            <form method="GET" action="/panel" class="input-group">
+                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
+                <button class="btn btn-dorado" type="submit">Buscar</button>
+                {% if busqueda %}
+                <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                {% endif %}
+            </form>
+        </div>
 
         <div class="row g-4">
-            
             <div class="col-lg-8">
-                {% if rol == 'administrador' or rol == 'admin' %}
-                <div class="panel-central mb-4">
-                    <h5 class="panel-title">Panel de Control de Inventario</h5>
-                    <p class="panel-subtitle">Registre nuevos artículos con especificaciones comerciales en el servidor central PostgreSQL.</p>
-                    
-                    <form action="/agregar" method="POST">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label-custom">Nombre del Artículo</label>
-                                <input type="text" name="nombre" class="form-control form-control-custom shadow-none" placeholder="Ej: Café Espresso Premium Moka" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label-custom">Categoría / Línea</label>
-                                <input type="text" name="categoria" class="form-control form-control-custom shadow-none" placeholder="Ej: Cafés, Repostería, Granos" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label-custom">Precio de Venta ($)</label>
-                                <input type="number" step="0.01" name="precio" class="form-control form-control-custom shadow-none" placeholder="0.00" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label-custom">Existencias Iniciales (Stock)</label>
-                                <input type="number" name="stock" class="form-control form-control-custom shadow-none" placeholder="Cantidad en unidades" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label-custom">Hipervínculo / URL de la Imagen en la Nube</label>
-                                <!-- CORREGIDO: type="text" para evitar el bloqueo del navegador -->
-                                <input type="text" name="ruta_img" class="form-control form-control-custom shadow-none" placeholder="https://ejemplo.com/imagen.jpg">
-                            </div>
+                {% if session.get('rol') == 'admin' %}
+                <div class="card-cafe p-3 mb-4">
+                    <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
+                    <form action="/agregar" method="POST" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" name="nombre" placeholder="Ej. Café" required>
                         </div>
-                        <button type="submit" class="btn-publicar">🚀 Cargar y Publicar en el Catálogo Digital</button>
+                        <div class="col-md-3">
+                            <label class="form-label">Categoría</label>
+                            <input type="text" class="form-control" name="categoria" placeholder="Ej. GRANOS" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Precio</label>
+                            <input type="number" step="0.01" class="form-control" name="precio" placeholder="0.00" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Stock</label>
+                            <input type="number" class="form-control" name="stock" placeholder="0" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-dorado w-100">Guardar</button>
+                        </div>
                     </form>
                 </div>
                 {% endif %}
 
-                <div class="search-container d-flex align-items-center">
-                    <span class="me-2 text-warning">🔍</span>
-                    <input type="text" id="inputBuscador" class="form-control bg-transparent border-0 p-0 shadow-none text-white" style="font-size: 0.9rem;" placeholder="Buscar artículos por nombre o categoría dentro del catálogo...">
-                </div>
-
-                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-5" id="contenedorCatalogo">
-                    {% for producto in productos %}
-                    <div class="col item-producto" data-nombre="{{ producto[1]|lower }}" data-categoria="{{ producto[2]|lower }}">
-                        <div class="card-producto">
-                            <div class="img-container">
-                                <img src="{{ producto[5] if producto[5] else 'https://via.placeholder.com/150' }}" alt="Imagen">
+                <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
+                <div class="row g-3">
+                    {% for prod in productos %}
+                    <div class="col-md-6">
+                        <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <span class="badge-categoria">{{ prod.categoria }}</span>
+                                <h5 class="fw-bold mt-2">{{ prod.nombre }}</h5>
+                                <h4 class="text-dorado">${{ "%.2f"|format(prod.precio) }}</h4>
+                                <p class="text-light opacity-75 mb-3" style="font-size: 0.85rem;">Unidades disponibles: {{ prod.stock }}</p>
+                                {% if prod.stock <= 5 %}
+                                <div class="badge bg-danger mb-2">STOCK CRÍTICO</div>
+                                {% endif %}
                             </div>
-                            <span class="badge-categoria">{{ producto[2] }}</span>
-                            <h5 class="prod-title">{{ producto[1] }}</h5>
-                            <div class="prod-price">${{ "%.2f"|format(producto[3]) }}</div>
-                            <div class="prod-stock">Unidades disponibles: {{ producto[4] }}</div>
-                            
-                            {% if producto[4] <= 5 %}
-                            <div class="mb-2"><span class="badge bg-danger text-uppercase w-100 py-2" style="font-size: 0.75rem; letter-spacing: 0.5px; background-color: rgba(231,76,60,0.3) !important; border: 1px solid #e74c3c; color: #ff7666;">⚠️ Stock Crítico</span></div>
-                            {% endif %}
-
-                            <div class="row g-2">
-                                <div class="col-12">
-                                    <form action="/ajustar_stock/{{ producto[0] }}/resta" method="POST" class="d-flex gap-1">
-                                        <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center bg-dark text-white border-secondary shadow-none" style="width: 50px; border-radius: 6px;">
-                                        <button type="submit" class="btn-venta">Registrar Venta</button>
-                                    </form>
-                                </div>
-                                {% if rol == 'administrador' or rol == 'admin' %}
-                                <div class="col-12">
-                                    <form action="/ajustar_stock/{{ producto[0] }}/suma" method="POST" class="d-flex gap-1">
-                                        <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center bg-dark text-white border-secondary shadow-none" style="width: 50px; border-radius: 6px;">
-                                        <button type="submit" class="btn-stock-add">+ Incrementar Stock</button>
-                                    </form>
-                                </div>
-                                <div class="col-12">
-                                    <a href="/eliminar/{{ producto[0] }}" class="btn-eliminar-cat" onclick="return confirm('¿Eliminar de catálogo?')">Eliminar de Catálogo</a>
+                            <div>
+                                <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-2 mb-2">
+                                    <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 70px;">
+                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold" style="background-color: #198754; border: none;">REGISTRAR VENTA</button>
+                                </form>
+                                <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-2 mb-2">
+                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 70px;">
+                                    <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124;">+ INCREMENTAR STOCK</button>
+                                </form>
+                                
+                                {% if session.get('rol') == 'admin' %}
+                                <div class="text-end">
+                                    <a href="/eliminar/{{ prod.id }}" class="text-danger text-decoration-none" style="font-size: 0.8rem;">ELIMINAR DE CATÁLOGO</a>
                                 </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
+                    {% else %}
+                    <div class="col-12">
+                        <p class="text-center text-muted">No se encontraron productos coincidentes.</p>
+                    </div>
                     {% endfor %}
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="panel-derecho text-center mb-4">
-                    <span class="form-label-custom d-block mb-1 text-muted" style="font-size: 0.75rem; color: #bfa38a !important;">Flujo de Caja Real (Hoy)</span>
-                    <h2 class="fw-bold text-caja-total mb-3">${{ "%.2f"|format(total_dia) }}</h2>
-                    <button class="btn btn-reporte-word w-100 btn-sm py-2 shadow-none" style="border-radius: 8px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase;">📥 Descargar Reporte Word</button>
-                </div>
-
-                <div class="panel-derecho mb-4">
-                    <span class="form-label-custom d-block text-center text-muted mb-3" style="font-size: 0.75rem; color: #bfa38a !important;">Volumen de Productos Vendidos</span>
-                    <div style="max-height: 220px; position: relative;" class="d-flex justify-content-center">
-                        <canvas id="chartCircular" style="max-width: 220px; max-height: 220px;"></canvas>
+            <div class="col-lg-4 d-flex flex-column gap-4">
+                <div class="card-cafe p-3">
+                    <h6 class="text-dorado mb-2 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
+                    <div class="p-3 mb-3 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
+                        <p class="mb-1 text-light opacity-75" style="font-size: 0.85rem;">Dinero Ingresado Hoy:</p>
+                        <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
                     </div>
-                </div>
-
-                <div class="panel-derecho">
-                    <div class="nav-tabs-custom">
-                        <button class="tab-button active" onclick="cambiarTab('hoy')">Actividad Hoy</button>
-                        <button class="tab-button" onclick="cambiarTab('permanente')">Historial Permanente</button>
-                    </div>
-
-                    <div id="panelHoy">
-                        <div class="audit-container">
-                            {% if ventas_hoy %}
-                                {% for registro in ventas_hoy %}
-                                <div class="audit-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="d-block" style="color: #fff;">{{ registro[0] }} <span class="fw-normal" style="font-size:0.75rem; color: #bfa38a;">({{ registro[5] }})</span></strong>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-muted text-center small py-3">No hay movimientos registrados hoy.</div>
-                            {% endif %}
+                    
+                    <h6 class="text-light opacity-75 mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
+                    <div class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+                        {% for v in ventas_del_dia %}
+                        <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>{{ v.producto }} (x{{ v.cantidad }})</span>
+                                <span class="text-success">+${{ "%.2f"|format(v.total) }}</span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Atendido por: {{ v.usuario }}</div>
                         </div>
-                    </div>
-
-                    <div id="panelPermanente" style="display: none;">
-                        <div class="audit-container">
-                            {% if historial_permanente %}
-                                {% for registro in historial_permanente %}
-                                <div class="audit-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong class="d-block" style="color: #fff;">{{ registro[0] }}</strong>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-muted text-center small py-3">El registro histórico de ventas está vacío.</div>
-                            {% endif %}
-                        </div>
+                        {% else %}
+                        <p class="text-muted text-center m-0" style="font-size: 0.8rem;">Sin ventas registradas hoy.</p>
+                        {% endfor %}
                     </div>
                 </div>
+
+                {% if session.get('rol') == 'admin' %}
+                <div class="card-cafe p-3">
+                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE (AUDITORÍA GENERAL)</h6>
+                    <div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                        {% for item in historial_permanente %}
+                        <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold text-warning">[{{ item.accion }}] {{ item.producto }}</span>
+                                <span class="text-muted">{{ item.fecha }}</span>
+                            </div>
+                            <div>Cant: {{ item.cantidad }} | Responsable: <strong>{{ item.usuario }}</strong></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function cambiarTab(tipo) {
-            let btnHoy = document.querySelectorAll('.tab-button')[0];
-            let btnPerm = document.querySelectorAll('.tab-button')[1];
-            let panelHoy = document.getElementById('panelHoy');
-            let panelPerm = document.getElementById('panelPermanente');
-
-            if (tipo === 'hoy') {
-                btnHoy.classList.add('active');
-                btnPerm.classList.remove('active');
-                panelHoy.style.display = 'block';
-                panelPerm.style.display = 'none';
-            } else {
-                btnHoy.classList.remove('active');
-                btnPerm.classList.add('active');
-                panelHoy.style.display = 'none';
-                panelPerm.style.display = 'block';
-            }
-        }
-
-        document.getElementById('inputBuscador').addEventListener('input', function(e) {
-            let termino = e.target.value.toLowerCase().trim();
-            let productos = document.querySelectorAll('.item-producto');
-            
-            productos.forEach(function(producto) {
-                let nombre = producto.getAttribute('data-nombre');
-                let categoria = producto.getAttribute('data-categoria');
-                
-                if (nombre.includes(termino) || categoria.includes(termino)) {
-                    producto.style.setProperty('display', '', 'important');
-                } else {
-                    producto.style.setProperty('display', 'none', 'important');
-                }
-            });
-        });
-
-        var ctxCircular = document.getElementById('chartCircular').getContext('2d');
-        new Chart(ctxCircular, {
-            type: 'doughnut',
-            data: {
-                labels: {{ labels|tojson }},
-                datasets: [{
-                    data: {{ valores|tojson }},
-                    backgroundColor: ['#d4af37', '#f3cc57', '#bfa38a', '#cdb49e', '#2a9d8f', '#e76f51'],
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: { boxWidth: 12, font: { size: 10 }, color: '#cdb49e' }
-                    }
-                },
-                cutout: '65%'
-            }
-        });
-    </script>
 </body>
 </html>
