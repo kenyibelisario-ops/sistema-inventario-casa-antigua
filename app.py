@@ -7,24 +7,12 @@ app.secret_key = 'clave_secreta_casa_antigua_2026'
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# Datos iniciales en memoria
-inventario_productos = [
-    {"id": 1, "nombre": "arroz Mary", "categoria": "GRANOS", "precio": 2000.00, "stock": 10, "imagen": "https://via.placeholder.com/400x200?text=Arroz+Mary"},
-    {"id": 2, "nombre": "lentejas", "categoria": "GRANOS", "precio": 3000.00, "stock": 17, "imagen": "https://via.placeholder.com/400x200?text=Lentejas"},
-    {"id": 3, "nombre": "Speed Max", "categoria": "BEBIDAS", "precio": 75000.00, "stock": 25, "imagen": "https://via.placeholder.com/400x200?text=Speed+Max"},
-    {"id": 4, "nombre": "crema de dientes colgate", "categoria": "ASEO", "precio": 21000.00, "stock": 7, "imagen": "https://via.placeholder.com/400x200?text=Colgate"}
-]
+# Listas limpias en memoria para evitar que los productos viejos resuciten al reiniciar
+inventario_productos = []
 
-historial_permanente = [
-    {"fecha": "2026-08-09 10:30", "accion": "Venta", "producto": "Speed Max", "cantidad": 25, "usuario": "Sulej Boscarini", "total": 75000.00},
-    {"fecha": "2026-08-09 11:15", "accion": "Venta", "producto": "crema de dientes colgate", "cantidad": 7, "usuario": "admin", "total": 21000.00},
-    {"fecha": "2026-08-09 09:00", "accion": "Creación Inventario", "producto": "arroz Mary", "cantidad": 10, "usuario": "admin", "total": 0}
-]
+historial_permanente = []
 
-ventas_del_dia = [
-    {"producto": "Speed Max", "cantidad": 25, "usuario": "Sulej Boscarini", "total": 75000.00},
-    {"producto": "crema de dientes colgate", "cantidad": 7, "usuario": "admin", "total": 21000.00}
-]
+ventas_del_dia = []
 
 fecha_actual_sistema = datetime.now().strftime("%Y-%m-%d")
 
