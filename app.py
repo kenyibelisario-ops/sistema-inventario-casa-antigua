@@ -13,16 +13,16 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 # CONEXIÓN A POSTGRESQL
 # ==========================================
 def obtener_conexion():
-    # En Render puedes usar variables de entorno o tus datos directos
     return pg8000.connect(
-        user=os.environ.get("PGUSER", "tu_usuario_postgres"),
-        password=os.environ.get("PGPASSWORD", "tu_password"),
-        host=os.environ.get("PGHOST", "localhost"),
-        database=os.environ.get("PGDATABASE", "casaantigua_db"),
-        port=int(os.environ.get("PGPORT", 5432))
+        user=os.environ.get("PGUSER"),
+        password=os.environ.get("PGPASSWORD"),
+        host=os.environ.get("PGHOST"),
+        database=os.environ.get("PGDATABASE"),
+        port=int(os.environ.get("PGPORT", 5432)),
+        timeout=10
     )
 
-# Inicializar tablas en la base de datos si no existen
+# Inicializar tablas y asegurar columnas en la base de datos
 def inicializar_bd():
     try:
         conexion = obtener_conexion()
@@ -57,8 +57,14 @@ def inicializar_bd():
                 producto TEXT NOT NULL,
                 cantidad INTEGER NOT NULL,
                 usuario TEXT NOT NULL,
+                total NUMERIC(12, 2) DEFAULT 0,
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        """)
+        
+        # Por si la tabla ya existía sin la columna total, la agregamos de forma segura:
+        cursor.execute("""
+            ALTER TABLE historial ADD COLUMN IF NOT EXISTS total NUMERIC(12, 2) DEFAULT 0;
         """)
         
         conexion.commit()
@@ -77,7 +83,6 @@ def verificar_cambio_dia():
     hoy = datetime.now().strftime("%Y-%m-%d")
     if hoy != fecha_actual_sistema:
         fecha_actual_sistema = hoy
-        # Opcional: limpiar ventas diarias automáticamente al cambiar de día
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
@@ -124,7 +129,6 @@ def panel():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
-    # Cargar productos
     productos = []
     if query:
         cursor.execute("SELECT id, nombre, categoria, precio, stock, imagen FROM productos WHERE LOWER(nombre) LIKE %s OR LOWER(categoria) LIKE %s;", (f"%{query}%", f"%{query}%"))
@@ -137,7 +141,6 @@ def panel():
             "precio": float(fila[3]), "stock": fila[4], "imagen": fila[5]
         })
         
-    # Cargar ventas del día
     ventas_del_dia = []
     cursor.execute("SELECT producto, cantidad, usuario, total FROM ventas_diarias ORDER BY id DESC;")
     for v in cursor.fetchall():
@@ -145,14 +148,12 @@ def panel():
             "producto": v[0], "cantidad": v[1], "usuario": v[2], "total": float(v[3])
         })
         
-    # Cargar historial permanente
     historial_permanente = []
     cursor.execute("SELECT fecha, accion, producto, cantidad, usuario, total FROM historial ORDER BY id DESC;")
-    # Nota: Si tu tabla historial no tiene columna total, ajusta la consulta según tu esquema
     for h in cursor.fetchall():
         historial_permanente.append({
             "fecha": str(h[0]), "accion": h[1], "producto": h[2],
-            "cantidad": h[3], "usuario": h[4], "total": float(h[5]) if len(h) > 5 and h[5] else 0
+            "cantidad": h[3], "usuario": h[4], "total": float(h[5]) if h[5] is not None else 0
         })
         
     cursor.close()
