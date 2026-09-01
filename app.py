@@ -3,6 +3,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime
 import pg8000
 import os
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua_2026'
@@ -10,17 +11,33 @@ app.secret_key = 'clave_secreta_casa_antigua_2026'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # ==========================================
-# CONEXIÓN A POSTGRESQL
+# CONEXIÓN A POSTGRESQL (ROBUSTA PARA RENDER)
 # ==========================================
 def obtener_conexion():
-    return pg8000.connect(
-        user=os.environ.get("PGUSER"),
-        password=os.environ.get("PGPASSWORD"),
-        host=os.environ.get("PGHOST"),
-        database=os.environ.get("PGDATABASE"),
-        port=int(os.environ.get("PGPORT", 5432)),
-        timeout=10
-    )
+    database_url = os.environ.get("DATABASE_URL")
+    
+    if database_url:
+        parsed_url = urllib.parse.urlparse(database_url)
+        return pg8000.connect(
+            user=parsed_url.username,
+            password=parsed_url.password,
+            host=parsed_url.hostname,
+            database=parsed_url.path[1:],
+            port=parsed_url.port or 5432,
+            timeout=10,
+            ssl_context=True
+        )
+    else:
+        # Fallback por si usas variables separadas en local
+        return pg8000.connect(
+            user=os.environ.get("PGUSER", "postgres"),
+            password=os.environ.get("PGPASSWORD", ""),
+            host=os.environ.get("PGHOST", "localhost"),
+            database=os.environ.get("PGDATABASE", "casaantigua_db"),
+            port=int(os.environ.get("PGPORT", 5432)),
+            timeout=10,
+            ssl_context=True
+        )
 
 # Inicializar tablas y asegurar columnas en la base de datos
 def inicializar_bd():
@@ -62,7 +79,7 @@ def inicializar_bd():
             );
         """)
         
-        # Por si la tabla ya existía sin la columna total, la agregamos de forma segura:
+        # Asegurar que la columna total exista si la tabla ya fue creada antes
         cursor.execute("""
             ALTER TABLE historial ADD COLUMN IF NOT EXISTS total NUMERIC(12, 2) DEFAULT 0;
         """)
