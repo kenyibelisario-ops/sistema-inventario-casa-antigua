@@ -10,9 +10,9 @@ app.secret_key = 'clave_secreta_casa_antigua_2026'
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-# ==========================================
-# CONEXIÓN A POSTGRESQL (ROBUSTA PARA RENDER)
-# ==========================================
+
+# CONEXIÓN A POSTGRESQL 
+
 def obtener_conexion():
     database_url = os.environ.get("DATABASE_URL")
     
@@ -24,18 +24,18 @@ def obtener_conexion():
             host=parsed_url.hostname,
             database=parsed_url.path[1:],
             port=parsed_url.port or 5432,
-            timeout=10,
+            timeout=30,
             ssl_context=True
         )
     else:
-        # Fallback por si usas variables separadas en local
+        # Fallback por si uso variables separadas en local
         return pg8000.connect(
             user=os.environ.get("PGUSER", "postgres"),
             password=os.environ.get("PGPASSWORD", ""),
             host=os.environ.get("PGHOST", "localhost"),
             database=os.environ.get("PGDATABASE", "casaantigua_db"),
             port=int(os.environ.get("PGPORT", 5432)),
-            timeout=10,
+            timeout=30,
             ssl_context=True
         )
 
