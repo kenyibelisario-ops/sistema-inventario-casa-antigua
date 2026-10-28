@@ -50,17 +50,19 @@
             </div>
         </div>
 
-        <div class="card-cafe p-3 mb-4">
-            <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
-                <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
-                <button class="btn btn-dorado" type="button">Buscar</button>
-                {% if busqueda %}
-                <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
-                {% endif %}
-            </form>
+        <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
+            <div class="card-cafe p-3 mb-0">
+                <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
+                    <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
+                    <button class="btn btn-dorado ms-2" type="button">Buscar</button>
+                    {% if busqueda %}
+                    <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                    {% endif %}
+                </form>
+            </div>
         </div>
 
-        <div class="row g-4 align-items-start">
+        <div class="row g-4 align-items-start mt-2">
             <div class="col-lg-8">
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3 mb-4">
