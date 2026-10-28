@@ -86,22 +86,26 @@ def inicializar_bd():
 
 inicializar_bd()
 
-fecha_actual_sistema = datetime.now().strftime("%Y-%m-%d")
-
 def verificar_cambio_dia():
-    global fecha_actual_sistema
-    hoy = datetime.now().strftime("%Y-%m-%d")
-    if hoy != fecha_actual_sistema:
-        fecha_actual_sistema = hoy
-        try:
-            conexion = obtener_conexion()
-            cursor = conexion.cursor()
-            cursor.execute("DELETE FROM ventas_diarias;")
-            conexion.commit()
-            cursor.close()
-            conexion.close()
-        except Exception:
-            pass
+    hoy_str = datetime.now().strftime("%Y-%m-%d")
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+        # Verificamos la fecha de la venta más reciente registrada
+        cursor.execute("SELECT fecha FROM ventas_diarias ORDER BY id DESC LIMIT 1;")
+        ultima_venta = cursor.fetchone()
+        
+        if ultima_venta:
+            fecha_ultima_venta = str(ultima_venta[0])[:10]
+            # Si el día de la última venta es anterior a hoy, borramos las ventas del día anterior
+            if fecha_ultima_venta != hoy_str:
+                cursor.execute("DELETE FROM ventas_diarias;")
+                conexion.commit()
+                
+        cursor.close()
+        conexion.close()
+    except Exception:
+        pass
 
 @app.route('/')
 def inicio():
@@ -117,14 +121,13 @@ def login():
             flash("Por favor rellene todos los campos", "danger")
             return redirect(url_for('login'))
         
-        # Validación estricta de contraseña por tipo de usuario
         if usuario == 'admin':
-            if contrasena != 'admin123':  # Puedes cambiar 'admin123' por la contraseña que desees para el admin
+            if contrasena != 'admin123':
                 flash("Contraseña incorrecta", "danger")
                 return redirect(url_for('login'))
             session['rol'] = 'admin'
         else:
-            if contrasena != 'empleado123':  # Contraseña requerida para los empleados
+            if contrasena != 'empleado123':
                 flash("Contraseña incorrecta", "danger")
                 return redirect(url_for('login'))
             session['rol'] = 'empleado'
