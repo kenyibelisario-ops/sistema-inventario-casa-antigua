@@ -10,9 +10,6 @@ app.secret_key = 'clave_secreta_casa_antigua_2026'
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
-
-# CONEXIÓN A POSTGRESQL 
-
 def obtener_conexion():
     database_url = os.environ.get("DATABASE_URL")
     
@@ -120,12 +117,19 @@ def login():
             flash("Por favor rellene todos los campos", "danger")
             return redirect(url_for('login'))
         
-        session['usuario'] = usuario
+        # Validación estricta de contraseña por tipo de usuario
         if usuario == 'admin':
+            if contrasena != 'admin123':  # Puedes cambiar 'admin123' por la contraseña que desees para el admin
+                flash("Contraseña incorrecta", "danger")
+                return redirect(url_for('login'))
             session['rol'] = 'admin'
         else:
+            if contrasena != 'empleado123':  # Contraseña requerida para los empleados
+                flash("Contraseña incorrecta", "danger")
+                return redirect(url_for('login'))
             session['rol'] = 'empleado'
             
+        session['usuario'] = usuario
         return redirect(url_for('panel'))
             
     return render_template('login.html')
