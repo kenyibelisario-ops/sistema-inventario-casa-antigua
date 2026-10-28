@@ -51,9 +51,9 @@
         </div>
 
         <div class="card-cafe p-3 mb-4">
-            <form method="GET" action="/panel" class="input-group">
-                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
-                <button class="btn btn-dorado" type="submit">Buscar</button>
+            <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
+                <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
+                <button class="btn btn-dorado" type="button">Buscar</button>
                 {% if busqueda %}
                 <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
                 {% endif %}
@@ -94,9 +94,9 @@
                 {% endif %}
 
                 <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
-                <div class="row g-3">
+                <div class="row g-3" id="contenedor-inventario">
                     {% for prod in productos %}
-                    <div class="col-md-6 col-xl-4">
+                    <div class="col-md-6 col-xl-4 producto-item-panel" data-nombre="{{ prod.nombre|lower }}" data-categoria="{{ prod.categoria|lower }}">
                         <div class="card-cafe p-2 h-100 d-flex flex-column justify-content-between" style="font-size: 0.9rem;">
                             <div>
                                 <div class="img-producto-container">
@@ -130,7 +130,7 @@
                     </div>
                     {% else %}
                     <div class="col-12">
-                        <p class="text-center text-muted">No se encontraron productos coincidentes.</p>
+                        <p class="text-center text-muted">No hay productos registrados en el inventario.</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -185,6 +185,25 @@
     </div>
 
     <script>
+        const buscadorPanel = document.getElementById('buscador-panel');
+        if (buscadorPanel) {
+            buscadorPanel.addEventListener('input', function() {
+                const valor = this.value.toLowerCase().trim();
+                const items = document.querySelectorAll('.producto-item-panel');
+                
+                items.forEach(item => {
+                    const nombre = item.getAttribute('data-nombre');
+                    const categoria = item.getAttribute('data-categoria');
+                    
+                    if (nombre.includes(valor) || categoria.includes(valor)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
         const ctx = document.getElementById('graficaVentas').getContext('2d');
         
         const ventasData = {};
