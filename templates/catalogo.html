@@ -156,8 +156,8 @@
                 const categoria = button.dataset.categoria;
                 const stockMax = parseInt(button.dataset.stock);
                 
-                const inputId = button.dataset.inputId;
-                const inputCantidad = document.getElementById(button.dataset.inputid);
+                const inputId = button.dataset.inputid;
+                const inputCantidad = document.getElementById(inputId);
                 let cantidadDeseada = parseInt(inputCantidad.value);
 
                 if (isNaN(cantidadDeseada) || cantidadDeseada < 1) {
@@ -236,7 +236,6 @@
         function enviarWhatsApp() {
             if (carrito.length === 0) return;
 
-            // aca se coloca el numero de telefono al que se va a enviar el pedido
             const telefono = "+584260339440"; 
 
             let mensaje = "Hola, deseo realizar el siguiente pedido desde el Catálogo Online:%0A%0A";

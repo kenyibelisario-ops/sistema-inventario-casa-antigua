@@ -28,7 +28,6 @@ def obtener_conexion():
             ssl_context=True
         )
     else:
-        # Fallback por si uso variables separadas en local
         return pg8000.connect(
             user=os.environ.get("PGUSER", "postgres"),
             password=os.environ.get("PGPASSWORD", ""),
@@ -39,7 +38,6 @@ def obtener_conexion():
             ssl_context=True
         )
 
-# Inicializar tablas y asegurar columnas en la base de datos
 def inicializar_bd():
     try:
         conexion = obtener_conexion()
@@ -79,7 +77,6 @@ def inicializar_bd():
             );
         """)
         
-        # Asegurar que la columna total exista si la tabla ya fue creada antes
         cursor.execute("""
             ALTER TABLE historial ADD COLUMN IF NOT EXISTS total NUMERIC(12, 2) DEFAULT 0;
         """)
@@ -90,7 +87,6 @@ def inicializar_bd():
     except Exception as e:
         print(f"Error al inicializar la base de datos: {e}")
 
-# Ejecutar inicialización al arrancar
 inicializar_bd()
 
 fecha_actual_sistema = datetime.now().strftime("%Y-%m-%d")
@@ -215,9 +211,12 @@ def agregar():
     if 'usuario' not in session or session.get('rol') != 'admin':
         return redirect(url_for('panel'))
         
-    nombre = request.form.get('nombre')
+    nombre = request.form.get('nombre', '').strip()
     categoria = request.form.get('categoria', 'GENERAL').upper()
     imagen = request.form.get('imagen', '').strip()
+    
+    if not nombre:
+        return redirect(url_for('panel'))
     
     try:
         precio = float(request.form.get('precio', 0))
@@ -228,20 +227,19 @@ def agregar():
     if not imagen:
         imagen = "https://via.placeholder.com/400x200?text=" + nombre.replace(" ", "+")
     
-    if nombre:
-        conexion = obtener_conexion()
-        cursor = conexion.cursor()
-        
-        cursor.execute("INSERT INTO productos (nombre, categoria, precio, stock, imagen) VALUES (%s, %s, %s, %s, %s);",
-                       (nombre, categoria, precio, stock, imagen))
-        
-        fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-        cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
-                       ('Creación Inventario', nombre, stock, session.get('usuario'), 0, fecha_str))
-        
-        conexion.commit()
-        cursor.close()
-        conexion.close()
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    
+    cursor.execute("INSERT INTO productos (nombre, categoria, precio, stock, imagen) VALUES (%s, %s, %s, %s, %s);",
+                   (nombre, categoria, precio, stock, imagen))
+    
+    fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
+                   ('Creación Inventario', nombre, stock, session.get('usuario'), 0, fecha_str))
+    
+    conexion.commit()
+    cursor.close()
+    conexion.close()
         
     return redirect(url_for('panel'))
 
