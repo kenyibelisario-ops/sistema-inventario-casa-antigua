@@ -50,22 +50,24 @@
             </div>
         </div>
 
-        <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
-            <div class="card-cafe p-3 mb-0">
-                <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
-                    <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
-                    <button class="btn btn-dorado ms-2" type="button">Buscar</button>
-                    {% if busqueda %}
-                    <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
-
-        <div class="row g-4 align-items-start mt-2">
+        <div class="row g-4 align-items-start">
+            <!-- Columna Izquierda: Buscador, Agregar Producto e Inventario -->
             <div class="col-lg-8">
+                <!-- Buscador limitado al ancho de la columna izquierda -->
+                <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
+                    <div class="card-cafe p-3 mb-0">
+                        <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
+                            <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
+                            <button class="btn btn-dorado ms-2" type="button">Buscar</button>
+                            {% if busqueda %}
+                            <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
                 {% if session.get('rol') == 'admin' %}
-                <div class="card-cafe p-3 mb-4">
+                <div class="card-cafe p-3 mb-4 mt-3">
                     <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
                     <form action="/agregar" method="POST" class="row g-3">
                         <div class="col-md-3">
@@ -138,6 +140,7 @@
                 </div>
             </div>
 
+            <!-- Columna Derecha: Control de Caja Diaria, Gráfico e Historial -->
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <h6 class="text-dorado mb-2 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
