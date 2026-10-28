@@ -33,113 +33,137 @@
             object-fit: contain;
         }
 
+        /* Carrito flotante optimizado */
         #carrito-flotante {
             position: fixed;
-            bottom: 25px;
-            right: 25px;
-            width: 330px;
-            max-height: 480px;
+            bottom: 15px;
+            right: 15px;
+            left: 15px;
+            max-width: 380px;
+            margin-left: auto;
+            max-height: 400px;
             background-color: #3b2219;
             border: 2px solid #d4af37;
             border-radius: 12px;
             padding: 15px;
             display: none;
             z-index: 1050;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.7);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.9);
             overflow-y: auto;
+        }
+
+        /* Estilos específicos para teléfonos */
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            .card-cafe { padding: 12px !important; }
+            .img-catalogo-container { height: 130px; }
+            h1 { font-size: 1.5rem; }
+            h4 { font-size: 1.1rem; }
+            h3 { font-size: 1.2rem; }
+            /* Permitir minimizar el carrito en movil con una clase */
+            #carrito-flotante.minimizado {
+                max-height: 60px;
+                overflow: hidden;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-5 p-3 card-cafe">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
-                <h3 class="fw-bold text-dorado m-0">CAFÉ-CASA ANTIGUA — CATÁLOGO DIGITAL</h3>
+                <h5 class="fw-bold text-dorado m-0" style="font-size: 0.95rem;">CAFÉ-CASA ANTIGUA</h5>
             </div>
             <div>
-                <a href="/login" class="btn btn-dorado btn-sm">Acceso Empleados / Admin</a>
+                <a href="/login" class="btn btn-dorado btn-sm" style="font-size: 0.75rem;">Acceso Admin</a>
             </div>
         </div>
 
-        <div class="text-center mb-5">
-            <h1 class="text-dorado fw-bold">Menú y Disponibilidad en Línea</h1>
-            <p class="text-light opacity-75">Explora los productos y artículos de nuestra cafetería en tiempo real.</p>
+        <div class="text-center mb-4">
+            <h1 class="text-dorado fw-bold">Menú en Línea</h1>
+            <p class="text-light opacity-75" style="font-size: 0.85rem;">Explora los productos y artículos en tiempo real.</p>
         </div>
 
-        <div style="position: sticky; top: 20px; z-index: 1020; background-color: #2e1b14; padding-bottom: 15px; padding-top: 5px;">
+        <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
             <div class="row justify-content-center">
-                <div class="col-md-6">
+                <div class="col-12 col-md-6">
                     <form method="GET" action="/catalogo" class="input-group card-cafe p-2" onsubmit="return false;">
-                        <input type="text" class="form-control" name="q" id="buscador-catalogo" value="{{ busqueda }}" placeholder="🔍 Buscar productos en el menú...">
-                        <button class="btn btn-dorado ms-2" type="button">Buscar</button>
+                        <input type="text" class="form-control" name="q" id="buscador-catalogo" value="{{ busqueda }}" placeholder="🔍 Buscar productos...">
+                        <button class="btn btn-dorado ms-2" type="button" style="font-size: 0.85rem;">Buscar</button>
                         {% if busqueda %}
-                        <a href="/catalogo" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                        <a href="/catalogo" class="btn btn-outline-secondary ms-2 text-white btn-sm">Limpiar</a>
                         {% endif %}
                     </form>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4" id="contenedor-productos">
+        <div class="row g-3 mt-1" id="contenedor-productos">
             {% for prod in productos %}
-            <div class="col-md-4 producto-item" data-nombre="{{ prod.nombre|lower }}" data-categoria="{{ prod.categoria|lower }}">
-                <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
+            <div class="col-6 col-md-4 producto-item" data-nombre="{{ prod.nombre|lower }}" data-categoria="{{ prod.categoria|lower }}">
+                <div class="card-cafe p-2 h-100 d-flex flex-column justify-content-between">
                     <div>
-                        <div class="img-catalogo-container">
+                        <div class="img-catalogo-container" style="height: 110px;">
                             <img src="{{ prod.imagen }}" class="img-catalogo" alt="{{ prod.nombre }}">
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge-stock">{{ prod.categoria }}</span>
-                            <span class="badge-stock">Stock: {{ prod.stock }}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">{{ prod.categoria }}</span>
+                            <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">Stock: {{ prod.stock }}</span>
                         </div>
-                        <h4 class="fw-bold mb-1">{{ prod.nombre }}</h4>
-                        <h3 class="text-dorado mb-3">${{ "%.2f"|format(prod.precio) }}</h3>
+                        <h6 class="fw-bold mb-1" style="font-size: 0.85rem; line-height: 1.2;">{{ prod.nombre }}</h6>
+                        <h5 class="text-dorado mb-2" style="font-size: 0.95rem;">${{ "%.2f"|format(prod.precio) }}</h5>
                     </div>
                     
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <label class="text-light m-0" style="font-size: 0.85rem;">Cantidad:</label>
-                            <input type="number" id="input-cant-{{ prod.id }}" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 80px;">
+                        <div class="d-flex align-items-center gap-1 mb-1">
+                            <label class="text-light m-0" style="font-size: 0.7rem;">Cant:</label>
+                            <input type="number" id="input-cant-{{ prod.id }}" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center p-1" style="font-size: 0.75rem; height: 28px;">
                         </div>
-                        <button class="btn btn-dorado w-100 agregar-carrito" 
+                        <button class="btn btn-dorado w-100 agregar-carrito py-1" style="font-size: 0.75rem;"
                                 data-nombre="{{ prod.nombre }}" 
                                 data-precio="{{ prod.precio }}" 
                                 data-categoria="{{ prod.categoria }}"
                                 data-stock="{{ prod.stock }}"
                                 data-inputid="input-cant-{{ prod.id }}">
-                            🛒 Agregar al carrito
+                            🛒 Agregar
                         </button>
                     </div>
                 </div>
             </div>
             {% else %}
             <div class="col-12 text-center text-muted">
-                <p>No hay productos disponibles en este momento.</p>
+                <p>No hay productos disponibles.</p>
             </div>
             {% endfor %}
         </div>
         
-        <footer class="text-center mt-5 text-light opacity-50" style="font-size: 0.85rem;">
-            © 2026 Café-Casa Antigua. Todos los derechos reservados.
+        <footer class="text-center mt-4 text-light opacity-50" style="font-size: 0.75rem;">
+            © 2026 Café-Casa Antigua.
         </footer>
     </div>
 
+    <!-- Ventana Flotante del Carrito Optimizada -->
     <div id="carrito-flotante">
         <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 border-secondary">
-            <h5 class="text-dorado m-0 fw-bold">🛒 Tu Carrito</h5>
-            <button class="btn-close btn-close-white btn-sm" onclick="cerrarCarrito()"></button>
-        </div>
-        <ul id="lista-carrito" class="list-unstyled mb-3" style="font-size: 0.85rem;">
-        </ul>
-        <div class="border-top pt-2 border-secondary mb-3">
-            <div class="d-flex justify-content-between fw-bold">
-                <span>Total estimado:</span>
-                <span id="total-carrito" class="text-success">$0.00</span>
+            <h6 class="text-dorado m-0 fw-bold">🛒 Tu Carrito</h6>
+            <div class="d-flex gap-1">
+                <button class="btn btn-outline-warning btn-sm py-0 px-1" style="font-size: 0.7rem;" onclick="toggleMinimizarCarrito()">Minimizar</button>
+                <button class="btn-close btn-close-white btn-sm" onclick="cerrarCarrito()"></button>
             </div>
         </div>
-        <button class="btn btn-success w-100 fw-bold" style="background-color: #25d366; border: none;" onclick="enviarWhatsApp()">
-            📲 Comprar / Pagar por WhatsApp
-        </button>
+        <div id="contenido-carrito-movil">
+            <ul id="lista-carrito" class="list-unstyled mb-2" style="font-size: 0.8rem;">
+            </ul>
+            <div class="border-top pt-1 border-secondary mb-2">
+                <div class="d-flex justify-content-between fw-bold" style="font-size: 0.85rem;">
+                    <span>Total:</span>
+                    <span id="total-carrito" class="text-success">$0.00</span>
+                </div>
+            </div>
+            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="enviarWhatsApp()">
+                📲 Comprar por WhatsApp
+            </button>
+        </div>
     </div>
 
     <script>
@@ -183,13 +207,13 @@
                 if (index !== -1) {
                     let nuevaCantidad = carrito[index].cantidad + cantidadDeseada;
                     if (nuevaCantidad > stockMax) {
-                        alert(`Lo sentimos, la cantidad total excede el stock disponible (${stockMax}).`);
+                        alert(`Lo sentimos, excede el stock disponible (${stockMax}).`);
                         nuevaCantidad = stockMax;
                     }
                     carrito[index].cantidad = nuevaCantidad;
                 } else {
                     if (cantidadDeseada > stockMax) {
-                        alert(`La cantidad seleccionada supera el stock disponible (${stockMax}).`);
+                        alert(`Supera el stock disponible (${stockMax}).`);
                         cantidadDeseada = stockMax;
                     }
                     carrito.push({ nombre, precio, categoria, cantidad: cantidadDeseada });
@@ -207,7 +231,7 @@
             let totalGeneral = 0;
 
             if (carrito.length === 0) {
-                lista.innerHTML = '<li class="text-muted text-center py-2">El carrito está vacío.</li>';
+                lista.innerHTML = '<li class="text-muted text-center py-1">Vacío.</li>';
                 totalSpan.textContent = '$0.00';
                 return;
             }
@@ -217,16 +241,13 @@
                 totalGeneral += subtotal;
 
                 lista.innerHTML += `
-                    <li class="mb-2 p-2 rounded" style="background-color: #26140e; border: 1px solid #523124;">
-                        <div class="d-flex justify-content-between fw-bold">
-                            <span>${item.nombre}</span>
+                    <li class="mb-1 p-1 rounded" style="background-color: #26140e; border: 1px solid #523124;">
+                        <div class="d-flex justify-content-between fw-bold" style="font-size: 0.75rem;">
+                            <span>${item.nombre} (x${item.cantidad})</span>
                             <span class="text-dorado">$${subtotal.toFixed(2)}</span>
                         </div>
-                        <div class="text-light opacity-75" style="font-size: 0.75rem;">
-                            Categoría: ${item.categoria} | Cantidad: ${item.cantidad}
-                        </div>
-                        <div class="text-end mt-1">
-                            <button class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.7rem;" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+                        <div class="text-end">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.6rem;" onclick="eliminarDelCarrito(${index})">Eliminar</button>
                         </div>
                     </li>
                 `;
@@ -247,25 +268,30 @@
             document.getElementById('carrito-flotante').style.display = 'none';
         }
 
+        function toggleMinimizarCarrito() {
+            const contenido = document.getElementById('contenido-carrito-movil');
+            if (contenido.style.display === 'none') {
+                contenido.style.display = 'block';
+            } else {
+                contenido.style.display = 'none';
+            }
+        }
+
         function enviarWhatsApp() {
             if (carrito.length === 0) return;
 
             const telefono = "+584260339440"; 
 
-            let mensaje = "Hola, deseo realizar el siguiente pedido desde el Catálogo Online:%0A%0A";
+            let mensaje = "Hola, deseo realizar el siguiente pedido:%0A%0A";
             let totalGeneral = 0;
 
             carrito.forEach(item => {
                 let subtotal = item.precio * item.cantidad;
                 totalGeneral += subtotal;
-                mensaje += `▪️ *${item.nombre}*%0A`;
-                mensaje += `   - Categoría: ${item.categoria}%0A`;
-                mensaje += `   - Cantidad: ${item.cantidad}%0A`;
-                mensaje += `   - Precio unitario: $${item.precio.toFixed(2)}%0A`;
-                mensaje += `   - Subtotal: $${subtotal.toFixed(2)}%0A%0A`;
+                mensaje += `▪️ *${item.nombre}* (Cant: ${item.cantidad}) - Subtotal: $${subtotal.toFixed(2)}%0A`;
             });
 
-            mensaje += `💰 *Total a pagar: $${totalGeneral.toFixed(2)}*`;
+            mensaje += `%0A💰 *Total: $${totalGeneral.toFixed(2)}*`;
 
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
