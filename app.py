@@ -226,13 +226,22 @@ def agregar():
     
     try:
         precio = float(request.form.get('precio', 0))
-        stock = int(request.form.get('stock', 0))
     except ValueError:
-        flash("El precio y el stock deben ser valores numéricos válidos", "danger")
+        flash("Precio no válido", "danger")
         return redirect(url_for('panel'))
         
-    if precio <= 0 or stock <= 0:
-        flash("El precio y el stock deben ser mayores a cero", "danger")
+    try:
+        stock = int(request.form.get('stock', 0))
+    except ValueError:
+        flash("Cantidad no válida", "danger")
+        return redirect(url_for('panel'))
+        
+    if precio <= 0:
+        flash("Precio no válido (debe ser mayor a cero)", "danger")
+        return redirect(url_for('panel'))
+        
+    if stock <= 0:
+        flash("Cantidad no válida (debe ser mayor a cero)", "danger")
         return redirect(url_for('panel'))
     
     if not imagen:
