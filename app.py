@@ -91,13 +91,11 @@ def verificar_cambio_dia():
     try:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
-        # Verificamos la fecha de la venta más reciente registrada
         cursor.execute("SELECT fecha FROM ventas_diarias ORDER BY id DESC LIMIT 1;")
         ultima_venta = cursor.fetchone()
         
         if ultima_venta:
             fecha_ultima_venta = str(ultima_venta[0])[:10]
-            # Si el día de la última venta es anterior a hoy, borramos las ventas del día anterior
             if fecha_ultima_venta != hoy_str:
                 cursor.execute("DELETE FROM ventas_diarias;")
                 conexion.commit()
@@ -222,14 +220,20 @@ def agregar():
     categoria = request.form.get('categoria', 'GENERAL').upper()
     imagen = request.form.get('imagen', '').strip()
     
-    if not nombre:
+    if not nombre or nombre.isdigit():
+        flash("El nombre del producto no puede estar vacío ni contener únicamente números", "danger")
         return redirect(url_for('panel'))
     
     try:
         precio = float(request.form.get('precio', 0))
         stock = int(request.form.get('stock', 0))
     except ValueError:
-        precio, stock = 0.0, 0
+        flash("El precio y el stock deben ser valores numéricos válidos", "danger")
+        return redirect(url_for('panel'))
+        
+    if precio <= 0 or stock <= 0:
+        flash("El precio y el stock deben ser mayores a cero", "danger")
+        return redirect(url_for('panel'))
     
     if not imagen:
         imagen = "https://via.placeholder.com/400x200?text=" + nombre.replace(" ", "+")
