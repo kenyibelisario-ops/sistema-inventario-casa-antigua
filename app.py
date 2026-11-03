@@ -230,14 +230,14 @@ def agregar():
         flash("coloque un precio valido", "danger")
         return redirect(url_for('panel'))
         
+    if precio <= 0:
+        flash("coloque un precio valido", "danger")
+        return redirect(url_for('panel'))
+        
     try:
         stock = int(request.form.get('stock', 0))
     except ValueError:
         flash("coloque una cantidad de stock valida", "danger")
-        return redirect(url_for('panel'))
-        
-    if precio <= 0:
-        flash("coloque un precio valido", "danger")
         return redirect(url_for('panel'))
         
     if stock <= 0:

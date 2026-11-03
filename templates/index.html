@@ -35,6 +35,14 @@
             max-height: 100%;
             object-fit: contain;
         }
+        @media (max-width: 768px) {
+            div[style*="position: sticky"] {
+                position: relative !important;
+                top: 0 !important;
+                background-color: transparent !important;
+                padding-bottom: 0 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -51,9 +59,7 @@
         </div>
 
         <div class="row g-4 align-items-start">
-            <!-- Columna Izquierda: Buscador, Agregar Producto e Inventario -->
             <div class="col-lg-8">
-                <!-- Buscador limitado al ancho de la columna izquierda -->
                 <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
                     <div class="card-cafe p-3 mb-0">
                         <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
@@ -69,6 +75,17 @@
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3 mb-4 mt-3">
                     <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-danger py-2 mb-3 text-center" style="font-size: 0.85rem; background-color: #523124; border-color: #7a4835; color: #ffcccc;">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
                     <form action="/agregar" method="POST" class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Nombre</label>
@@ -140,7 +157,6 @@
                 </div>
             </div>
 
-            <!-- Columna Derecha: Control de Caja Diaria, Gráfico e Historial -->
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <h6 class="text-dorado mb-2 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
