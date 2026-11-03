@@ -159,7 +159,13 @@
 
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
-                    <h6 class="text-dorado mb-2 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-dorado m-0 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
+                        <a href="/reporte-pdf" target="_blank" class="btn btn-danger btn-sm fw-bold py-1 px-2" style="font-size: 0.75rem; background-color: #dc3545; border: none;">
+                            📄 PDF Ventas
+                        </a>
+                    </div>
+
                     <div class="p-3 mb-3 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
                         <p class="mb-1 text-claro-sub" style="font-size: 0.85rem;">Dinero Ingresado Hoy:</p>
                         <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
