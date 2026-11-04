@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café-Casa Antigua</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(46, 27, 20, 0.82), rgba(46, 27, 20, 0.82)), 
+                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #f8f9fa;
+        }
+        .welcome-card {
+            background-color: rgba(59, 34, 25, 0.92);
+            border: 1px solid #523124;
+            border-radius: 16px;
+            padding: 45px 35px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+        .text-dorado { color: #d4af37 !important; }
+        .btn-dorado {
+            background-color: #d4af37;
+            color: #1a0f0a;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.2s ease;
+        }
+        .btn-dorado:hover {
+            background-color: #e5c158;
+            color: #1a0f0a;
+            transform: translateY(-2px);
+        }
+        .btn-outline-dorado {
+            background-color: transparent;
+            color: #d4af37;
+            border: 2px solid #d4af37;
+            font-weight: bold;
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-dorado:hover {
+            background-color: #d4af37;
+            color: #1a0f0a;
+            transform: translateY(-2px);
+        }
+        .divider {
+            border-color: #523124;
+            opacity: 0.4;
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-card">
+        <div class="fs-1 mb-2">☕</div>
+        <h2 class="fw-bold text-dorado mb-1">Café-Casa Antigua</h2>
+        <p class="text-light opacity-75 mb-4" style="font-size: 0.9rem;">Rubio, Estado Táchira</p>
+
+        <div class="d-grid gap-3">
+            <a href="/catalogo" class="btn btn-dorado shadow-sm">
+                🛒 Ver Menú / Catálogo en Línea
+            </a>
+            
+            <hr class="divider">
+
+            <a href="/login" class="btn btn-outline-dorado shadow-sm">
+                🔐 Acceso Empleados / Administrador
+            </a>
+        </div>
+
+        <p class="text-light opacity-50 mt-4 mb-0" style="font-size: 0.75rem;">
+            © 2026 Café-Casa Antigua. Todos los derechos reservados.
+        </p>
+    </div>
+</body>
+</html>
