@@ -505,4 +505,92 @@ def reporte_pdf():
     ]
     t_resumen = Table(resumen_data, colWidths=[2.5*inch, 4.7*inch])
     t_resumen.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#fcf8f2
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#fcf8f2')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e0d5c1')),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+    ]))
+    elements.append(t_resumen)
+    elements.append(Spacer(1, 15))
+
+    if conteo_productos:
+        elements.append(Paragraph("Desglose por Producto Vendido", seccion_style))
+        elements.append(HRFlowable(width="100%", thickness=1, color=c_dorado, spaceAfter=8))
+        
+        prod_table_data = [
+            [Paragraph("Producto", cell_header), Paragraph("Cantidad Vendida", cell_header), Paragraph("Total Recaudado", cell_header)]
+        ]
+        for prod_nombre, cant_tot in conteo_productos.items():
+            ing_tot = ingreso_por_producto[prod_nombre]
+            prod_table_data.append([
+                Paragraph(prod_nombre, cell_normal),
+                Paragraph(str(cant_tot), cell_normal),
+                Paragraph(f"${ing_tot:.2f}", cell_bold)
+            ])
+            
+        t_prod = Table(prod_table_data, colWidths=[3.5*inch, 1.8*inch, 1.9*inch])
+        t_prod.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), c_marron_tarjeta),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1c2a5')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f6f0')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(t_prod)
+        elements.append(Spacer(1, 15))
+
+    elements.append(Paragraph("Detalle Cronológico de Transacciones del Día", seccion_style))
+    elements.append(HRFlowable(width="100%", thickness=1, color=c_dorado, spaceAfter=8))
+    
+    if ventas:
+        detalles_data = [
+            [Paragraph("Fecha / Hora", cell_header), Paragraph("Producto", cell_header), Paragraph("Cant.", cell_header), Paragraph("Monto Total", cell_header), Paragraph("Atendido Por", cell_header)]
+        ]
+        for v in ventas:
+            f_str = str(v[4])[:19]
+            detalles_data.append([
+                Paragraph(f_str, cell_normal),
+                Paragraph(v[0], cell_normal),
+                Paragraph(str(v[1]), cell_normal),
+                Paragraph(f"${float(v[2]):.2f}", cell_bold),
+                Paragraph(v[3], cell_normal)
+            ])
+            
+        t_detalles = Table(detalles_data, colWidths=[1.6*inch, 2.3*inch, 0.7*inch, 1.3*inch, 1.3*inch])
+        t_detalles.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), c_marron_tarjeta),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1c2a5')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9f6f0')]),
+            ('TOPPADDING', (0, 0), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ]))
+        elements.append(t_detalles)
+    else:
+        elements.append(Paragraph("No se han registrado ventas durante el día de hoy.", cell_normal))
+        
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("© 2026 Café-Casa Antigua - Sistema de Control de Inventario y Ventas", ParagraphStyle('FooterText', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.gray, alignment=1)))
+
+    doc.build(elements)
+    pdf_val = buffer.getvalue()
+    buffer.close()
+    
+    response = make_response(pdf_val)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=Reporte_Ventas_Diarias_{datetime.now().strftime("%Y%m%d")}.pdf'
+    return response
+
+@app.route('/logout')
+def logout():
+    session.pop('usuario', None)
+    session.pop('rol', None)
+    return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
