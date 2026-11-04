@@ -6,6 +6,7 @@ import os
 import urllib.parse
 from io import BytesIO
 
+# Importaciones para generación de PDF profesional con ReportLab
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.units import inch
@@ -114,7 +115,7 @@ def verificar_cambio_dia():
 
 @app.route('/')
 def inicio():
-    return render_template('welcome.html')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -227,10 +228,12 @@ def agregar():
     categoria = request.form.get('categoria', 'GENERAL').upper()
     imagen = request.form.get('imagen', '').strip()
     
+    # 1. Validación del nombre
     if not nombre or nombre.isdigit():
         flash("El nombre del producto no puede estar vacío ni contener únicamente números", "danger")
         return redirect(url_for('panel'))
     
+    # 2. Validación del precio
     try:
         precio = float(request.form.get('precio', 0))
     except ValueError:
@@ -241,6 +244,7 @@ def agregar():
         flash("coloque un precio valido", "danger")
         return redirect(url_for('panel'))
         
+    # 3. Validación de la cantidad de stock
     try:
         stock = int(request.form.get('stock', 0))
     except ValueError:
@@ -251,6 +255,7 @@ def agregar():
         flash("coloque una cantidad de stock valida", "danger")
         return redirect(url_for('panel'))
         
+    # 4. Validación del campo URL de la imagen
     if imagen and not (imagen.startswith("http://") or imagen.startswith("https://")):
         flash("coloque una URL de imagen valida", "danger")
         return redirect(url_for('panel'))
@@ -462,7 +467,7 @@ def reporte_pdf():
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %I:%M %p")
     header_data = [
         [Paragraph("CAFÉ-CASA ANTIGUA", titulo_style)],
-        [Paragraph(f"REPORTE DETALLADO DE VENTAS DIARIAS - GENERADO EL {fecha_hoy}", subtitulo_style)]
+        [Paragraph(f"REPORTE DETALLADO DE VENTAS DIARIAS — GENERADO EL {fecha_hoy}", subtitulo_style)]
     ]
     t_header = Table(header_data, colWidths=[7.2*inch])
     t_header.setStyle(TableStyle([
@@ -575,7 +580,7 @@ def reporte_pdf():
         elements.append(Paragraph("No se han registrado ventas durante el día de hoy.", cell_normal))
         
     elements.append(Spacer(1, 20))
-    elements.append(Paragraph("© 2026 Café-Casa Antigua - Sistema de Control de Inventario y Ventas", ParagraphStyle('FooterText', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.gray, alignment=1)))
+    elements.append(Paragraph("© 2026 Café-Casa Antigua — Sistema de Control de Inventario y Ventas", ParagraphStyle('FooterText', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8, textColor=colors.gray, alignment=1)))
 
     doc.build(elements)
     pdf_val = buffer.getvalue()
@@ -590,7 +595,7 @@ def reporte_pdf():
 def logout():
     session.pop('usuario', None)
     session.pop('rol', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('panel'))
 
 if __name__ == '__main__':
     app.run(debug=True)
