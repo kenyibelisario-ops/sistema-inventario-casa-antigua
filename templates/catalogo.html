@@ -51,17 +51,34 @@
             overflow-y: auto;
         }
 
+        /* Estilos del Modal de Notificación de 12 horas */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .custom-modal-box {
+            background-color: #3b2219;
+            border: 2px solid #d4af37;
+            border-radius: 14px;
+            padding: 25px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
         @media (max-width: 768px) {
             body { padding: 12px; }
             .card-cafe { padding: 12px !important; }
             .img-catalogo-container { height: 130px; }
-            h1 { font-size: 1.5rem; }
-            h4 { font-size: 1.1rem; }
-            h3 { font-size: 1.2rem; }
-            #carrito-flotante.minimizado {
-                max-height: 60px;
-                overflow: hidden;
-            }
         }
     </style>
 </head>
@@ -72,7 +89,7 @@
                 <a href="/" class="text-decoration-none"><h5 class="fw-bold text-dorado m-0" style="font-size: 0.95rem;">← CAFÉ-CASA ANTIGUA</h5></a>
             </div>
             <div>
-                <span class="text-light opacity-75" style="font-size: 0.8rem;"></span>
+                <span class="text-light opacity-75" style="font-size: 0.8rem;">Menú de Clientes</span>
             </div>
         </div>
 
@@ -135,7 +152,7 @@
         </div>
         
         <footer class="text-center mt-4 text-light opacity-50" style="font-size: 0.75rem;">
-            Café-Casa Antigua.
+            © 2026 Café-Casa Antigua.
         </footer>
     </div>
 
@@ -156,9 +173,24 @@
                     <span id="total-carrito" class="text-success">$0.00</span>
                 </div>
             </div>
-            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="enviarWhatsApp()">
-                📲 Hacer pedido
+            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="mostrarAviso12Horas()">
+                📲 Comprar por WhatsApp
             </button>
+        </div>
+    </div>
+
+    <!-- Modal Flotante de Notificación (12 Horas) -->
+    <div id="modalAviso12Horas" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div class="fs-1 mb-2">⏰</div>
+            <h4 class="text-dorado fw-bold mb-3">¡Aviso Importante!</h4>
+            <p class="text-light mb-4" style="font-size: 0.95rem; line-height: 1.5;">
+                Tiene <strong>12 horas</strong> para retirar su pedido en nuestro local una vez enviado el mensaje. De lo contrario, el pedido será cancelado.
+            </p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary w-50 py-2 text-white" onclick="cerrarModalAviso()">Cancelar</button>
+                <button class="btn btn-dorado w-50 py-2" onclick="procederWhatsApp()">Continuar</button>
+            </div>
         </div>
     </div>
 
@@ -273,9 +305,17 @@
             }
         }
 
-        function enviarWhatsApp() {
+        function mostrarAviso12Horas() {
             if (carrito.length === 0) return;
+            document.getElementById('modalAviso12Horas').style.display = 'flex';
+        }
 
+        function cerrarModalAviso() {
+            document.getElementById('modalAviso12Horas').style.display = 'none';
+        }
+
+        function procederWhatsApp() {
+            cerrarModalAviso();
             const telefono = "+584260339440"; 
 
             let mensaje = "Hola, deseo realizar el siguiente pedido:%0A%0A";
@@ -288,6 +328,7 @@
             });
 
             mensaje += `%0A💰 *Total: $${totalGeneral.toFixed(2)}*`;
+            mensaje += `%0A%0A⏱️ *(Nota: Tienes 12 horas para retirar tu pedido)*`;
 
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
