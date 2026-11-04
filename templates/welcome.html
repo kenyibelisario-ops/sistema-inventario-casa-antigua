@@ -14,80 +14,61 @@
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(rgba(46, 27, 20, 0.82), rgba(46, 27, 20, 0.82)), 
-                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
+            background: linear-gradient(rgba(46, 27, 20, 0.75), rgba(46, 27, 20, 0.75)), 
+                        url("{{ url_for('static', filename='images.jfif') }}");
             background-size: cover;
             background-position: center;
             color: #f8f9fa;
         }
-        .welcome-card {
-            background-color: rgba(59, 34, 25, 0.92);
+        .admin-link {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            background-color: #3b2219;
+            color: #d4af37;
             border: 1px solid #523124;
-            border-radius: 16px;
-            padding: 45px 35px;
-            width: 100%;
-            max-width: 460px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8);
-            text-align: center;
-            backdrop-filter: blur(5px);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            text-decoration: none;
         }
-        .text-dorado { color: #d4af37 !important; }
-        .btn-dorado {
+        .admin-link:hover {
+            color: #e5c158;
+            border-color: #d4af37;
+        }
+        .main-box {
+            text-align: center;
+            padding: 20px;
+        }
+        .welcome-heading {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+        .btn-custom-catalogo {
             background-color: #d4af37;
             color: #1a0f0a;
             font-weight: bold;
+            font-size: 0.95rem;
             border: none;
-            border-radius: 10px;
-            padding: 12px;
-            transition: all 0.2s ease;
+            border-radius: 8px;
+            padding: 10px 24px;
+            text-decoration: none;
+            display: inline-block;
         }
-        .btn-dorado:hover {
+        .btn-custom-catalogo:hover {
             background-color: #e5c158;
             color: #1a0f0a;
-            transform: translateY(-2px);
-        }
-        .btn-outline-dorado {
-            background-color: transparent;
-            color: #d4af37;
-            border: 2px solid #d4af37;
-            font-weight: bold;
-            border-radius: 10px;
-            padding: 12px;
-            transition: all 0.2s ease;
-        }
-        .btn-outline-dorado:hover {
-            background-color: #d4af37;
-            color: #1a0f0a;
-            transform: translateY(-2px);
-        }
-        .divider {
-            border-color: #523124;
-            opacity: 0.4;
-            margin: 25px 0;
         }
     </style>
 </head>
 <body>
-    <div class="welcome-card">
-        <div class="fs-1 mb-2">☕</div>
-        <h2 class="fw-bold text-dorado mb-1">Café-Casa Antigua</h2>
-        <p class="text-light opacity-75 mb-4" style="font-size: 0.9rem;">Rubio, Estado Táchira</p>
+    <a href="/login" class="admin-link">Área de administración</a>
 
-        <div class="d-grid gap-3">
-            <a href="/catalogo" class="btn btn-dorado shadow-sm">
-                🛒 Ver Menú / Catálogo en Línea
-            </a>
-            
-            <hr class="divider">
-
-            <a href="/login" class="btn btn-outline-dorado shadow-sm">
-                🔐 Acceso Empleados / Administrador
-            </a>
-        </div>
-
-        <p class="text-light opacity-50 mt-4 mb-0" style="font-size: 0.75rem;">
-            © 2026 Café-Casa Antigua. Todos los derechos reservados.
-        </p>
+    <div class="main-box">
+        <h1 class="welcome-heading">Bienvenido</h1>
+        <a href="/catalogo" class="btn-custom-catalogo">Catálogo en línea</a>
     </div>
 </body>
 </html>
