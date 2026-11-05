@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos - Café-Casa Antigua</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #2e1b14; color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .card-cafe { background-color: #3b2219; border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .form-control, .form-select { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
+        .form-control:focus, .form-select:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
+        .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
+        .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
+        .text-dorado { color: #e5c158 !important; }
+        .text-claro-sub { color: rgba(255, 255, 255, 0.75) !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
+            <div>
+                <h3 class="fw-bold text-dorado m-0">📦 Módulo de Pedidos</h3>
+                <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Control y estatus de solicitudes de clientes</p>
+            </div>
+            <div>
+                <a href="/panel" class="btn btn-outline-warning btn-sm">← Volver al Panel</a>
+            </div>
+        </div>
+
+        <div class="card-cafe p-3 mb-4">
+            <form method="GET" action="/pedidos" class="input-group">
+                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="🔍 Buscar por nombre o apellido del cliente...">
+                <button class="btn btn-dorado ms-2" type="submit">Buscar</button>
+                {% if busqueda %}
+                <a href="/pedidos" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="card-cafe p-3">
+            <div class="table-responsive">
+                <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.9rem;">
+                    <thead>
+                        <tr class="text-warning">
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Detalle</th>
+                            <th>Total</th>
+                            <th>Estatus</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pedidos %}
+                        <tr>
+                            <td>{{ p.fecha }}</td>
+                            <td class="fw-bold text-info">{{ p.cliente }}</td>
+                            <td>{{ p.detalle }}</td>
+                            <td class="text-success">${{ "%.2f"|format(p.total) }}</td>
+                            <td>
+                                <span class="badge {% if p.estatus == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ p.estatus }}
+                                </span>
+                            </td>
+                            <td>
+                                <form action="/cambiar-estatus-pedido/{{ p.id }}" method="POST" class="d-flex gap-1">
+                                    <select name="estatus" class="form-select form-select-sm" style="font-size: 0.75rem; width: 110px;">
+                                        <option value="No Pagado" {% if p.estatus == 'No Pagado' %}selected{% endif %}>No Pagado</option>
+                                        <option value="Pagado" {% if p.estatus == 'Pagado' %}selected{% endif %}>Pagado</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-dorado btn-sm py-0 px-2" style="font-size: 0.7rem;">OK</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No se encontraron pedidos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

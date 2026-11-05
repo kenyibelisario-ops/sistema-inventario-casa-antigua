@@ -245,13 +245,6 @@ def panel():
             "precio": float(fila[3]), "stock": fila[4], "imagen": fila[5]
         })
         
-    pedidos = []
-    cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos ORDER BY id DESC;")
-    for p in cursor.fetchall():
-        pedidos.append({
-            "id": p[0], "cliente": p[1], "detalle": p[2], "total": float(p[3]), "estatus": p[4], "fecha": str(p[5])[:19]
-        })
-        
     ventas_del_dia = []
     cursor.execute("SELECT producto, cantidad, usuario, total, fecha FROM ventas_diarias ORDER BY id DESC;")
     for v in cursor.fetchall():
@@ -275,12 +268,37 @@ def panel():
     return render_template(
         'index.html', 
         productos=productos, 
-        pedidos=pedidos,
         ventas_del_dia=ventas_del_dia,
         historial_permanente=historial_permanente,
         total_dinero_hoy=total_dinero_hoy,
         busqueda=query
     )
+
+@app.route('/pedidos')
+def pedidos():
+    if 'usuario' not in session:
+        flash("Por favor inicia sesión primero", "danger")
+        return redirect(url_for('login'))
+        
+    query = request.args.get('q', '').strip().lower()
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    
+    lista_pedidos = []
+    if query:
+        cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos WHERE LOWER(nombre_cliente) LIKE %s ORDER BY id DESC;", (f"%{query}%",))
+    else:
+        cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos ORDER BY id DESC;")
+        
+    for p in cursor.fetchall():
+        lista_pedidos.append({
+            "id": p[0], "cliente": p[1], "detalle": p[2], "total": float(p[3]), "estatus": p[4], "fecha": str(p[5])[:19]
+        })
+        
+    cursor.close()
+    conexion.close()
+    
+    return render_template('pedidos.html', pedidos=lista_pedidos, busqueda=query)
 
 @app.route('/catalogo')
 def catalogo():
@@ -388,7 +406,7 @@ def cambiar_estatus_pedido(pedido_id):
         
     cursor.close()
     conexion.close()
-    return redirect(url_for('panel'))
+    return redirect(url_for('pedidos'))
 
 @app.route('/agregar', methods=['POST'])
 def agregar():
