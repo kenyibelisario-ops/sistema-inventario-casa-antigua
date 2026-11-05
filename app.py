@@ -60,6 +60,7 @@ def inicializar_bd():
                 imagen TEXT
             );
         """)
+        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (
@@ -70,6 +71,7 @@ def inicializar_bd():
                 contrasena TEXT NOT NULL
             );
         """)
+        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS pedidos (
@@ -82,11 +84,14 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        conexion.commit()
         
         try:
             cursor.execute("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INTEGER;")
-        except Exception:
-            pass
+            conexion.commit()
+        except Exception as e:
+            conexion.rollback()
+            print(f"Nota en alter table pedidos: {e}")
             
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ventas_diarias (
@@ -98,6 +103,7 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS historial (
@@ -110,8 +116,8 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        
         conexion.commit()
+        
         cursor.close()
         conexion.close()
     except Exception as e:
@@ -339,14 +345,17 @@ def cliente_pedidos():
     cursor = conexion.cursor()
     
     mis_pedidos = []
-    cursor.execute("SELECT id, detalle_pedido, total, estatus, fecha FROM pedidos WHERE cliente_id = %s ORDER BY id DESC;", (cliente_id,))
-    for p in cursor.fetchall():
-        mis_pedidos.append({
-            "id": p[0], "detalle": p[1], "total": float(p[2]), "estatus": p[3], "fecha": str(p[4])[:19]
-        })
-        
-    cursor.close()
-    conexion.close()
+    try:
+        cursor.execute("SELECT id, detalle_pedido, total, estatus, fecha FROM pedidos WHERE cliente_id = %s ORDER BY id DESC;", (cliente_id,))
+        for p in cursor.fetchall():
+            mis_pedidos.append({
+                "id": p[0], "detalle": p[1], "total": float(p[2]), "estatus": p[3], "fecha": str(p[4])[:19]
+            })
+    except Exception as e:
+        print(f"Error consultando pedidos: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
     
     return render_template('cliente_pedidos.html', pedidos=mis_pedidos)
 
