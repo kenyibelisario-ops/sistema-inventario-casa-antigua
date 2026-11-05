@@ -60,7 +60,6 @@ def inicializar_bd():
                 imagen TEXT
             );
         """)
-        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (
@@ -71,7 +70,6 @@ def inicializar_bd():
                 contrasena TEXT NOT NULL
             );
         """)
-        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS pedidos (
@@ -84,15 +82,7 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        conexion.commit()
         
-        try:
-            cursor.execute("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INTEGER;")
-            conexion.commit()
-        except Exception as e:
-            conexion.rollback()
-            print(f"Nota en alter table pedidos: {e}")
-            
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ventas_diarias (
                 id SERIAL PRIMARY KEY,
@@ -103,7 +93,6 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        conexion.commit()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS historial (
@@ -116,8 +105,15 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        
         conexion.commit()
         
+        try:
+            cursor.execute("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INTEGER;")
+            conexion.commit()
+        except Exception:
+            conexion.rollback()
+
         cursor.close()
         conexion.close()
     except Exception as e:
@@ -352,7 +348,7 @@ def cliente_pedidos():
                 "id": p[0], "detalle": p[1], "total": float(p[2]), "estatus": p[3], "fecha": str(p[4])[:19]
             })
     except Exception as e:
-        print(f"Error consultando pedidos: {e}")
+        print(f"Error en /cliente-pedidos: {e}")
     finally:
         cursor.close()
         conexion.close()
