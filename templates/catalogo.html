@@ -98,7 +98,8 @@
             <div>
                 <span class="text-dorado fw-bold">Cliente: {{ session.get('cliente_nombre') }}</span>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center">
+                <a href="/cliente-pedidos" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">📦 Mis Pedidos</a>
                 <a href="/cliente-logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -132,7 +133,10 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">{{ prod.categoria }}</span>
-                            <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">Stock: {{ prod.stock }}</span>
+                            <!-- Indicador visual de stock -->
+                            <span class="badge {% if prod.stock <= 5 %}bg-danger{% elif prod.stock <= 15 %}bg-warning text-dark{% else %}bg-success{% endif %}" style="font-size: 0.6rem;">
+                                Stock: {{ prod.stock }}
+                            </span>
                         </div>
                         <h6 class="fw-bold mb-1" style="font-size: 0.85rem; line-height: 1.2;">{{ prod.nombre }}</h6>
                         <h5 class="text-dorado mb-2" style="font-size: 0.95rem;">${{ "%.2f"|format(prod.precio) }}</h5>
@@ -301,7 +305,7 @@
             }
         }
 
-    function cerrarCarrito() {
+        function cerrarCarrito() {
             document.getElementById('carrito-flotante').style.display = 'none';
         }
 

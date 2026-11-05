@@ -324,6 +324,27 @@ def catalogo():
     
     return render_template('catalogo.html', productos=productos, busqueda=query)
 
+@app.route('/cliente-pedidos')
+def cliente_pedidos():
+    if 'cliente_id' not in session:
+        return redirect(url_for('cliente_login'))
+        
+    cliente_id = session.get('cliente_id')
+    conexion = obtener_conexion()
+    cursor = conexion.cursor()
+    
+    mis_pedidos = []
+    cursor.execute("SELECT id, detalle_pedido, total, estatus, fecha FROM pedidos WHERE cliente_id = %s ORDER BY id DESC;", (cliente_id,))
+    for p in cursor.fetchall():
+        mis_pedidos.append({
+            "id": p[0], "detalle": p[1], "total": float(p[2]), "estatus": p[3], "fecha": str(p[4])[:19]
+        })
+        
+    cursor.close()
+    conexion.close()
+    
+    return render_template('cliente_pedidos.html', pedidos=mis_pedidos)
+
 @app.route('/hacer-pedido', methods=['POST'])
 def hacer_pedido():
     if 'cliente_id' not in session:
