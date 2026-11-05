@@ -82,7 +82,14 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        conexion.commit()
         
+        try:
+            cursor.execute("ALTER TABLE pedidos ADD COLUMN cliente_id INTEGER;")
+            conexion.commit()
+        except Exception:
+            conexion.rollback()
+            
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ventas_diarias (
                 id SERIAL PRIMARY KEY,
@@ -105,15 +112,7 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        
         conexion.commit()
-        
-        try:
-            cursor.execute("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INTEGER;")
-            conexion.commit()
-        except Exception:
-            conexion.rollback()
-
         cursor.close()
         conexion.close()
     except Exception as e:
