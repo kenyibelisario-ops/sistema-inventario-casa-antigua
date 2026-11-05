@@ -3,25 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Café-Casa Antigua</title>
+    <title>Acceso Personal - Café-Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #2e1b14; color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
-        .card-cafe { background-color: #3b2219; border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        body { 
+            margin: 0;
+            padding: 0;
+            height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(rgba(46, 27, 20, 0.82), rgba(46, 27, 20, 0.82)), 
+                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #f8f9fa;
+        }
+        .card-cafe { 
+            background-color: rgba(59, 34, 25, 0.92); 
+            border: 1px solid #523124; 
+            border-radius: 12px; 
+            color: #ffffff; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7); 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 30px; 
+            backdrop-filter: blur(4px);
+        }
         .form-control { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
         .form-control:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
         .form-label { color: #e5c158; font-weight: 600; }
-        .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
+        .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; width: 100%; padding: 10px; }
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
-        .login-card { width: 100%; max-width: 420px; padding: 40px; }
     </style>
 </head>
 <body>
-    <div class="card-cafe login-card text-center">
-        <div class="fs-1 mb-2">☕</div>
-        <h3 class="fw-bold mb-1 text-dorado">Café-Casa Antigua</h3>
-        <p class="text-light opacity-75 mb-4" style="font-size: 0.85rem;">Sistema de Control de Inventario</p>
+    <div class="card-cafe">
+        <h3 class="fw-bold text-dorado text-center mb-1">Acceso Personal</h3>
+        <p class="text-center text-light opacity-75 mb-3" style="font-size: 0.85rem;">Administración y Empleados</p>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -33,22 +54,21 @@
             {% endif %}
         {% endwith %}
 
-        <form action="/login" method="POST" class="text-start">
+        <form method="POST">
             <div class="mb-3">
-                <label class="form-label">USUARIO</label>
-                <input type="text" class="form-control" name="usuario" placeholder="Ej. admin o empleado" required autocomplete="off">
+                <label class="form-label">Usuario</label>
+                <input type="text" class="form-control" name="usuario" required>
             </div>
-            <div class="mb-4">
-                <label class="form-label">CONTRASEÑA</label>
-                <input type="password" class="form-control" name="contrasena" placeholder="••••••••" required>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                <input type="password" class="form-control" name="contrasena" required>
             </div>
-            <button type="submit" class="btn btn-dorado w-100 py-2 mb-3">Ingresar al Sistema</button>
+            <button type="submit" class="btn btn-dorado mb-3">Ingresar al Sistema</button>
         </form>
 
-        <hr class="border-secondary opacity-25 my-3">
-        <a href="/catalogo" class="btn btn-outline-warning w-100 text-decoration-none" style="color: #d4af37; border-color: #d4af37;">
-            ← Ver Catálogo en Línea (Clientes)
-        </a>
+        <div class="text-center" style="font-size: 0.85rem;">
+            <a href="/" class="btn btn-outline-light btn-sm w-100 mt-2" style="border-color: #523124; font-size: 0.8rem;">← Volver a la página principal</a>
+        </div>
     </div>
 </body>
 </html>

@@ -6,8 +6,19 @@
     <title>Catálogo Digital - Café-Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #2e1b14; color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; }
-        .card-cafe { background-color: #3b2219; border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        body { 
+            margin: 0;
+            padding: 30px;
+            min-height: 100vh;
+            background: linear-gradient(rgba(46, 27, 20, 0.85), rgba(46, 27, 20, 0.85)), 
+                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #f8f9fa; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .card-cafe { background-color: rgba(59, 34, 25, 0.92); border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .form-control { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
         .form-control:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
         .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
@@ -41,7 +52,7 @@
             max-width: 380px;
             margin-left: auto;
             max-height: 400px;
-            background-color: #3b2219;
+            background-color: rgba(59, 34, 25, 0.96);
             border: 2px solid #d4af37;
             border-radius: 12px;
             padding: 15px;
@@ -57,7 +68,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 0, 0, 0.75);
             display: none;
             justify-content: center;
             align-items: center;
@@ -97,7 +108,7 @@
             <p class="text-light opacity-75" style="font-size: 0.85rem;">Explora los productos y artículos en tiempo real.</p>
         </div>
 
-        <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
+        <div style="position: sticky; top: 10px; z-index: 1020; background: transparent; padding-bottom: 10px; padding-top: 5px;">
             <div class="row justify-content-center">
                 <div class="col-12 col-md-6">
                     <form method="GET" action="/catalogo" class="input-group card-cafe p-2" onsubmit="return false;">
@@ -178,7 +189,6 @@
         </div>
     </div>
 
-    <!-- Modal Flotante de Notificación (12 Horas) -->
     <div id="modalAviso12Horas" class="custom-modal-overlay">
         <div class="custom-modal-box">
             <div class="fs-1 mb-2">⏰</div>
@@ -291,7 +301,7 @@
             }
         }
 
-        function cerrarCarrito() {
+    function cerrarCarrito() {
             document.getElementById('carrito-flotante').style.display = 'none';
         }
 
