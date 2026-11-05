@@ -17,6 +17,9 @@ app.secret_key = 'clave_secreta_casa_antigua_2026'
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
+def obtener_tiempo_local():
+    return datetime.utcnow() - timedelta(hours=4)
+
 def obtener_conexion():
     database_url = os.environ.get("DATABASE_URL")
     
@@ -112,7 +115,7 @@ def inicializar_bd():
 inicializar_bd()
 
 def verificar_cambio_dia():
-    hoy_str = datetime.now().strftime("%Y-%m-%d")
+    hoy_str = obtener_tiempo_local().strftime("%Y-%m-%d")
     try:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
@@ -347,10 +350,11 @@ def hacer_pedido():
     nombre_cliente = session.get('cliente_nombre')
     cliente_id = session.get('cliente_id')
     
+    fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M:%S")
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute("INSERT INTO pedidos (cliente_id, nombre_cliente, detalle_pedido, total, estatus) VALUES (%s, %s, %s, %s, 'No Pagado');",
-                   (cliente_id, nombre_cliente, detalle_str, total_pedido))
+    cursor.execute("INSERT INTO pedidos (cliente_id, nombre_cliente, detalle_pedido, total, estatus, fecha) VALUES (%s, %s, %s, %s, 'No Pagado', %s);",
+                   (cliente_id, nombre_cliente, detalle_str, total_pedido, fecha_str))
     conexion.commit()
     cursor.close()
     conexion.close()
@@ -390,7 +394,7 @@ def cambiar_estatus_pedido(pedido_id):
                         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, p_id))
                         
                         total_v = p_precio * cant_p
-                        fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+                        fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
                         cursor.execute("INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha) VALUES (%s, %s, %s, %s, %s);",
                                        (nombre_p, cant_p, total_v, session.get('usuario'), fecha_str))
                         cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
@@ -435,7 +439,7 @@ def agregar():
     cursor.execute("INSERT INTO productos (nombre, categoria, precio, stock, imagen) VALUES (%s, %s, %s, %s, %s);",
                    (nombre, categoria, precio, stock, imagen))
     
-    fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
     cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
                    ('Creación Inventario', nombre, stock, session.get('usuario'), 0, fecha_str))
     
@@ -466,7 +470,7 @@ def vender(prod_id):
         if stock >= cantidad:
             nuevo_stock = stock - cantidad
             total_venta = precio * cantidad
-            fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+            fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
             
             cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, prod_id))
             cursor.execute("INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha) VALUES (%s, %s, %s, %s, %s);",
@@ -497,7 +501,7 @@ def incrementar(prod_id):
     if prod:
         nombre, stock = prod[0], prod[1]
         nuevo_stock = stock + cantidad
-        fecha_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
         
         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, prod_id))
         cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
@@ -530,13 +534,13 @@ def reporte_pdf():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
-    # Filtrar según el tipo de reporte consultando la tabla historial o ventas según corresponda
+    tiempo_actual_local = obtener_tiempo_local()
     if tipo == 'semanal':
-        hace_7_dias = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
+        hace_7_dias = (tiempo_actual_local - timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
         cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_7_dias,))
         titulo_periodo = "REPORTE DETALLADO DE VENTAS SEMANALES"
     elif tipo == 'mensual':
-        hace_30_dias = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d 00:00:00")
+        hace_30_dias = (tiempo_actual_local - timedelta(days=30)).strftime("%Y-%m-%d 00:00:00")
         cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_30_dias,))
         titulo_periodo = "REPORTE DETALLADO DE VENTAS MENSUALES"
     else:
@@ -580,10 +584,10 @@ def reporte_pdf():
     cell_normal = ParagraphStyle('CellNormal', parent=styles['Normal'], fontName='Helvetica', fontSize=8.5, textColor=colors.HexColor('#222222'))
     cell_header = ParagraphStyle('CellHeader', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.white)
 
-    fecha_hoy = datetime.now().strftime("%d/%m/%Y %I:%M %p")
+    fecha_hoy = tiempo_actual_local.strftime("%d/%m/%Y %I:%M %p")
     header_data = [
         [Paragraph("CAFÉ-CASA ANTIGUA", titulo_style)],
-        [Paragraph(f"{titulo_periodO} - GENERADO EL {fecha_hoy}", subtitulo_style)]
+        [Paragraph(f"{titulo_periodo} - GENERADO EL {fecha_hoy}", subtitulo_style)]
     ]
     t_header = Table(header_data, colWidths=[7.2*inch])
     t_header.setStyle(TableStyle([
@@ -639,7 +643,7 @@ def reporte_pdf():
     
     response = make_response(pdf_val)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=Reporte_{tipo}_{datetime.now().strftime("%Y%m%d")}.pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=Reporte_{tipo}_{tiempo_actual_local.strftime("%Y%m%d")}.pdf'
     return response
 
 @app.route('/logout')
