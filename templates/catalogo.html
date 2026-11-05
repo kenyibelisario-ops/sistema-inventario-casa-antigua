@@ -98,8 +98,7 @@
             <div>
                 <span class="text-dorado fw-bold">Cliente: {{ session.get('cliente_nombre') }}</span>
             </div>
-            <div class="d-flex gap-2 align-items-center">
-                <a href="/cliente-pedidos" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">📦 Mis Pedidos</a>
+            <div class="d-flex gap-2">
                 <a href="/cliente-logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -133,7 +132,6 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">{{ prod.categoria }}</span>
-                            <!-- Indicador visual de stock -->
                             <span class="badge {% if prod.stock <= 5 %}bg-danger{% elif prod.stock <= 15 %}bg-warning text-dark{% else %}bg-success{% endif %}" style="font-size: 0.6rem;">
                                 Stock: {{ prod.stock }}
                             </span>
@@ -255,7 +253,7 @@
                 } else {
                     if (cantidadDeseada > stockMax) {
                         alert(`Supera el stock disponible (${stockMax}).`);
-                        cantidadDeseada = stockMax;
+                        cantidadDesarada = stockMax;
                     }
                     carrito.push({ nombre, precio, categoria, cantidad: cantidadDeseada });
                 }
