@@ -14,11 +14,12 @@
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(rgba(46, 27, 20, 0.75), rgba(46, 27, 20, 0.75)), 
-                        url("{{ url_for('static', filename='images_2.jfif') }}");
+            background: linear-gradient(rgba(46, 27, 20, 0.78), rgba(46, 27, 20, 0.78)), 
+                        url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
             color: #f8f9fa;
+            position: relative;
         }
         .admin-link {
             position: absolute;
@@ -31,8 +32,10 @@
             border-radius: 6px;
             font-size: 0.8rem;
             text-decoration: none;
+            transition: all 0.2s ease;
         }
         .admin-link:hover {
+            background-color: #523124;
             color: #e5c158;
             border-color: #d4af37;
         }
@@ -41,25 +44,35 @@
             padding: 20px;
         }
         .welcome-heading {
-            font-size: 3.5rem;
+            font-size: 3.8rem;
             font-weight: 700;
             color: #d4af37;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 35px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         .btn-custom-catalogo {
             background-color: #d4af37;
             color: #1a0f0a;
             font-weight: bold;
-            font-size: 0.95rem;
+            font-size: 1rem;
             border: none;
-            border-radius: 8px;
-            padding: 10px 24px;
+            border-radius: 10px;
+            padding: 12px 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             text-decoration: none;
             display: inline-block;
+            transition: all 0.2s ease;
         }
         .btn-custom-catalogo:hover {
             background-color: #e5c158;
             color: #1a0f0a;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -67,7 +80,9 @@
     <a href="/login" class="admin-link">Área de administración</a>
 
     <div class="main-box">
+        <div class="fs-1 mb-2">☕</div>
         <h1 class="welcome-heading">Bienvenido</h1>
+        <p class="welcome-subtitle">Café-Casa Antigua — Rubio, Estado Táchira</p>
         <div class="d-flex flex-column gap-2 align-items-center">
             <a href="/catalogo" class="btn-custom-catalogo">Catálogo en línea</a>
             <a href="/cliente-login" class="text-warning text-decoration-none" style="font-size: 0.85rem;">¿Eres cliente? Inicia sesión aquí</a>

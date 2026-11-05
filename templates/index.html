@@ -49,11 +49,11 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
-                <h3 class="fw-bold text-dorado m-0">☕ Sistema de Gestión - Café-Casa Antigua</h3>
+                <h3 class="fw-bold text-dorado m-0">Café-Casa Antigua</h3>
                 <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="/pedidos" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">📦 Ver Módulo de Pedidos</a>
+                <a href="/pedidos" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">Ver Pedidos</a>
                 <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -63,7 +63,7 @@
                 <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
                     <div class="card-cafe p-3 mb-0">
                         <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
-                            <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="🔍 Buscar artículos por nombre o categoría dentro del inventario...">
+                            <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="Buscar artículos por nombre o categoría...">
                             <button class="btn btn-dorado ms-2" type="button">Buscar</button>
                             {% if busqueda %}
                             <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
@@ -160,9 +160,18 @@
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="text-dorado m-0 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
-                        <a href="/reporte-pdf" target="_blank" class="btn btn-dorado btn-sm fw-bold py-1 px-3 shadow-sm" style="font-size: 0.75rem; border-radius: 8px;">
-                            📊 Reporte de Ventas Diario
+                        <h6 class="text-dorado m-0 fw-bold">CONTROL DE VENTAS Y REPORTES</h6>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <a href="/reporte-pdf?tipo=diario" target="_blank" class="btn btn-dorado btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px;">
+                            Generar Reporte Diario (PDF)
+                        </a>
+                        <a href="/reporte-pdf?tipo=semanal" target="_blank" class="btn btn-outline-warning btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px; color: #d4af37; border-color: #d4af37;">
+                            Generar Reporte Semanal (PDF)
+                        </a>
+                        <a href="/reporte-pdf?tipo=mensual" target="_blank" class="btn btn-outline-light btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px;">
+                            Generar Reporte Mensual (PDF)
                         </a>
                     </div>
 
@@ -175,7 +184,7 @@
                         <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
                     </div>
                     
-                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
+                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día</h6>
                     <div class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
                         {% for v in ventas_del_dia %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
@@ -193,7 +202,7 @@
 
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3">
-                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE (AUDITORÍA GENERAL)</h6>
+                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE</h6>
                     <div class="d-flex flex-column gap-2" style="max-height: 220px; overflow-y: auto;">
                         {% for item in historial_permanente %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
@@ -232,7 +241,6 @@
         }
 
         const ctx = document.getElementById('graficaVentas').getContext('2d');
-        
         const ventasData = {};
         {% for v in ventas_del_dia %}
             if (ventasData["{{ v.producto }}"]) {
@@ -260,18 +268,10 @@
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        ticks: { color: '#f8f9fa' },
-                        grid: { color: '#523124' }
-                    },
-                    x: {
-                        ticks: { color: '#f8f9fa' },
-                        grid: { display: false }
-                    }
+                    y: { ticks: { color: '#f8f9fa' }, grid: { color: '#523124' } },
+                    x: { ticks: { color: '#f8f9fa' }, grid: { display: false } }
                 }
             }
         });

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, make_response
 from werkzeug.middleware.proxy_fix import ProxyFix
-from datetime import datetime
+from datetime import datetime, timedelta
 import pg8000
 import os
 import urllib.parse
@@ -280,16 +280,11 @@ def pedidos():
         flash("Por favor inicia sesión primero", "danger")
         return redirect(url_for('login'))
         
-    query = request.args.get('q', '').strip().lower()
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
     lista_pedidos = []
-    if query:
-        cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos WHERE LOWER(nombre_cliente) LIKE %s ORDER BY id DESC;", (f"%{query}%",))
-    else:
-        cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos ORDER BY id DESC;")
-        
+    cursor.execute("SELECT id, nombre_cliente, detalle_pedido, total, estatus, fecha FROM pedidos ORDER BY id DESC;")
     for p in cursor.fetchall():
         lista_pedidos.append({
             "id": p[0], "cliente": p[1], "detalle": p[2], "total": float(p[3]), "estatus": p[4], "fecha": str(p[5])[:19]
@@ -298,7 +293,7 @@ def pedidos():
     cursor.close()
     conexion.close()
     
-    return render_template('pedidos.html', pedidos=lista_pedidos, busqueda=query)
+    return render_template('pedidos.html', pedidos=lista_pedidos)
 
 @app.route('/catalogo')
 def catalogo():
@@ -531,10 +526,24 @@ def reporte_pdf():
     if 'usuario' not in session:
         return redirect(url_for('login'))
         
-    verificar_cambio_dia()
+    tipo = request.args.get('tipo', 'diario')
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM ventas_diarias ORDER BY id DESC;")
+    
+    # Filtrar según el tipo de reporte consultando la tabla historial o ventas según corresponda
+    if tipo == 'semanal':
+        hace_7_dias = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
+        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_7_dias,))
+        titulo_periodo = "REPORTE DETALLADO DE VENTAS SEMANALES"
+    elif tipo == 'mensual':
+        hace_30_dias = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d 00:00:00")
+        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_30_dias,))
+        titulo_periodo = "REPORTE DETALLADO DE VENTAS MENSUALES"
+    else:
+        verificar_cambio_dia()
+        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM ventas_diarias ORDER BY id DESC;")
+        titulo_periodo = "REPORTE DETALLADO DE VENTAS DIARIAS"
+        
     ventas = cursor.fetchall()
     cursor.close()
     conexion.close()
@@ -574,7 +583,7 @@ def reporte_pdf():
     fecha_hoy = datetime.now().strftime("%d/%m/%Y %I:%M %p")
     header_data = [
         [Paragraph("CAFÉ-CASA ANTIGUA", titulo_style)],
-        [Paragraph(f"REPORTE DETALLADO DE VENTAS DIARIAS - GENERADO EL {fecha_hoy}", subtitulo_style)]
+        [Paragraph(f"{titulo_periodO} - GENERADO EL {fecha_hoy}", subtitulo_style)]
     ]
     t_header = Table(header_data, colWidths=[7.2*inch])
     t_header.setStyle(TableStyle([
@@ -588,7 +597,7 @@ def reporte_pdf():
     elements.append(t_header)
     elements.append(Spacer(1, 15))
 
-    elements.append(Paragraph("Resumen General de la Jornada", seccion_style))
+    elements.append(Paragraph("Resumen General del Periodo", seccion_style))
     elements.append(HRFlowable(width="100%", thickness=1, color=c_dorado, spaceAfter=8))
     
     resumen_data = [
@@ -630,7 +639,7 @@ def reporte_pdf():
     
     response = make_response(pdf_val)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=Reporte_Ventas_{datetime.now().strftime("%Y%m%d")}.pdf'
+    response.headers['Content-Disposition'] = f'inline; filename=Reporte_{tipo}_{datetime.now().strftime("%Y%m%d")}.pdf'
     return response
 
 @app.route('/logout')
