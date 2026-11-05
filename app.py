@@ -83,6 +83,11 @@ def inicializar_bd():
             );
         """)
         
+        try:
+            cursor.execute("ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS cliente_id INTEGER;")
+        except Exception:
+            pass
+            
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ventas_diarias (
                 id SERIAL PRIMARY KEY,
