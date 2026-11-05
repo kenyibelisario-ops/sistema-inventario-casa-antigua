@@ -35,14 +35,6 @@
             max-height: 100%;
             object-fit: contain;
         }
-        @media (max-width: 768px) {
-            div[style*="position: sticky"] {
-                position: relative !important;
-                top: 0 !important;
-                background-color: transparent !important;
-                padding-bottom: 0 !important;
-            }
-        }
     </style>
 </head>
 <body>
@@ -53,13 +45,58 @@
                 <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="/catalogo" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">Ver Catálogo Público</a>
                 <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
 
         <div class="row g-4 align-items-start">
             <div class="col-lg-8">
+                <div class="card-cafe p-3 mb-4">
+                    <h5 class="text-dorado mb-3">📦 Control de Pedidos de Clientes</h5>
+                    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.85rem;">
+                            <thead>
+                                <tr class="text-warning">
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Detalle</th>
+                                    <th>Total</th>
+                                    <th>Estatus</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in pedidos %}
+                                <tr>
+                                    <td>{{ p.fecha }}</td>
+                                    <td class="fw-bold text-info">{{ p.cliente }}</td>
+                                    <td>{{ p.detalle }}</td>
+                                    <td class="text-success">${{ "%.2f"|format(p.total) }}</td>
+                                    <td>
+                                        <span class="badge {% if p.estatus == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                            {{ p.estatus }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <form action="/cambiar-estatus-pedido/{{ p.id }}" method="POST" class="d-flex gap-1">
+                                            <select name="estatus" class="form-select form-select-sm" style="font-size: 0.75rem; width: 110px;">
+                                                <option value="No Pagado" {% if p.estatus == 'No Pagado' %}selected{% endif %}>No Pagado</option>
+                                                <option value="Pagado" {% if p.estatus == 'Pagado' %}selected{% endif %}>Pagado</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-dorado btn-sm py-0 px-2" style="font-size: 0.7rem;">OK</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No hay pedidos registrados de clientes.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div style="position: sticky; top: 10px; z-index: 1020; background-color: #2e1b14; padding-bottom: 10px; padding-top: 5px;">
                     <div class="card-cafe p-3 mb-0">
                         <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
@@ -160,7 +197,7 @@
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="text-dorado m-0 fw-bold">GRÁFICO Y CONTROL DE VENTAS DEL DÍA</h6>
+                        <h6 class="text-dorado m-0 fw-bold">CONTROL DE VENTAS</h6>
                         <a href="/reporte-pdf" target="_blank" class="btn btn-dorado btn-sm fw-bold py-1 px-3 shadow-sm" style="font-size: 0.75rem; border-radius: 8px;">
                             📊 Reporte de Ventas Diario
                         </a>
@@ -175,7 +212,7 @@
                         <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
                     </div>
                     
-                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día (Se reinicia diariamente)</h6>
+                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día</h6>
                     <div class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
                         {% for v in ventas_del_dia %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
@@ -186,14 +223,14 @@
                             <div class="text-claro-sub" style="font-size: 0.75rem;">Atendido por: <strong class="text-warning">{{ v.usuario }}</strong></div>
                         </div>
                         {% else %}
-                        <p class="text-muted text-center m-0" style="font-size: 0.8rem;">Sin ventas registradas hoy.</p>
+                        <p class="text-muted text-center m-0" style="font-size: 0.80rem;">Sin ventas registradas hoy.</p>
                         {% endfor %}
                     </div>
                 </div>
 
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3">
-                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE (AUDITORÍA GENERAL)</h6>
+                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE</h6>
                     <div class="d-flex flex-column gap-2" style="max-height: 220px; overflow-y: auto;">
                         {% for item in historial_permanente %}
                         <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
@@ -232,7 +269,6 @@
         }
 
         const ctx = document.getElementById('graficaVentas').getContext('2d');
-        
         const ventasData = {};
         {% for v in ventas_del_dia %}
             if (ventasData["{{ v.producto }}"]) {
@@ -260,18 +296,10 @@
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        ticks: { color: '#f8f9fa' },
-                        grid: { color: '#523124' }
-                    },
-                    x: {
-                        ticks: { color: '#f8f9fa' },
-                        grid: { display: false }
-                    }
+                    y: { ticks: { color: '#f8f9fa' }, grid: { color: '#523124' } },
+                    x: { ticks: { color: '#f8f9fa' }, grid: { display: false } }
                 }
             }
         });

@@ -51,7 +51,6 @@
             overflow-y: auto;
         }
 
-        /* Estilos del Modal de Notificación de 12 horas */
         .custom-modal-overlay {
             position: fixed;
             top: 0;
@@ -86,10 +85,10 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
-                <a href="/" class="text-decoration-none"><h5 class="fw-bold text-dorado m-0" style="font-size: 0.95rem;">← CAFÉ-CASA ANTIGUA</h5></a>
+                <span class="text-dorado fw-bold">Cliente: {{ session.get('cliente_nombre') }}</span>
             </div>
-            <div>
-                <span class="text-light opacity-75" style="font-size: 0.8rem;">Menú de Clientes</span>
+            <div class="d-flex gap-2">
+                <a href="/cliente-logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
 
@@ -173,7 +172,7 @@
                     <span id="total-carrito" class="text-success">$0.00</span>
                 </div>
             </div>
-            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="mostrarAviso12Horas()">
+            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="procesarPedidoServidor()">
                 📲 Comprar por WhatsApp
             </button>
         </div>
@@ -185,7 +184,7 @@
             <div class="fs-1 mb-2">⏰</div>
             <h4 class="text-dorado fw-bold mb-3">¡Aviso Importante!</h4>
             <p class="text-light mb-4" style="font-size: 0.95rem; line-height: 1.5;">
-                Tiene <strong>12 horas</strong> para pagar y retirar su pedido en nuestro local una vez enviado el mensaje. De lo contrario, el pedido será cancelado.
+                Tiene <strong>12 horas</strong> para retirar su pedido en nuestro local una vez enviado el mensaje. De lo contrario, el pedido será cancelado.
             </p>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-secondary w-50 py-2 text-white" onclick="cerrarModalAviso()">Cancelar</button>
@@ -305,9 +304,22 @@
             }
         }
 
-        function mostrarAviso12Horas() {
+        function procesarPedidoServidor() {
             if (carrito.length === 0) return;
-            document.getElementById('modalAviso12Horas').style.display = 'flex';
+
+            fetch('/hacer-pedido', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: carrito })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('modalAviso12Horas').style.display = 'flex';
+                } else {
+                    alert("Error al registrar el pedido.");
+                }
+            });
         }
 
         function cerrarModalAviso() {
@@ -318,7 +330,7 @@
             cerrarModalAviso();
             const telefono = "+584260339440"; 
 
-            let mensaje = "Hola, deseo realizar el siguiente pedido:%0A%0A";
+            let mensaje = "Hola, deseo confirmar mi pedido:%0A%0A";
             let totalGeneral = 0;
 
             carrito.forEach(item => {
@@ -328,7 +340,7 @@
             });
 
             mensaje += `%0A💰 *Total: $${totalGeneral.toFixed(2)}*`;
-            mensaje += `%0A%0A⏱️ *(Nota: Entiendo que tengo 12 horas para pagar y retirar mi pedido)*`;
+            mensaje += `%0A%0A⏱️ *(Nota: Entiendo que tengo 12 horas para retirar mi pedido)*`;
 
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
