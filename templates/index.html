@@ -104,7 +104,14 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Categoría</label>
-                            <input type="text" class="form-control" name="categoria" placeholder="Ej. GRANOS" required>
+                            <select class="form-select" name="categoria" required>
+                                <option value="" disabled selected>Seleccione...</option>
+                                <option value="CAFÉ">CAFÉ</option>
+                                <option value="BEBIDAS">BEBIDAS</option>
+                                <option value="POSTRES">POSTRES</option>
+                                <option value="SNACKS">SNACKS</option>
+                                <option value="GENERAL">GENERAL</option>
+                            </select>
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Precio</label>
