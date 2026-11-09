@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión - Café-Casa Antigua</title>
+    <title>Panel de Administración - Café-Casa Antigua</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { 
             margin: 0;
@@ -22,37 +21,27 @@
         .card-cafe { background-color: rgba(59, 34, 25, 0.92); border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .form-control, .form-select { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
         .form-control:focus, .form-select:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
-        .form-label { color: #e5c158; font-weight: 600; }
         .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
-        .text-claro-sub { color: rgba(255, 255, 255, 0.75) !important; }
-        .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; }
+        .badge-stock { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
         
-        .img-producto-container {
-            width: 100%;
-            height: 110px;
+        .img-admin-container {
+            width: 50px;
+            height: 50px;
             background-color: #26140e;
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-bottom: 8px;
             border: 1px solid #523124;
+            margin: auto;
         }
-        .img-producto {
+        .img-admin {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-        }
-        @media (max-width: 768px) {
-            div[style*="position: sticky"] {
-                position: relative !important;
-                top: 0 !important;
-                background-color: transparent !important;
-                padding-bottom: 0 !important;
-            }
         }
     </style>
 </head>
@@ -60,232 +49,213 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
-                <h3 class="fw-bold text-dorado m-0">Café-Casa Antigua</h3>
-                <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: <strong>{{ session.get('rol').upper() }}</strong>)</p>
+                <h3 class="fw-bold text-dorado m-0" style="font-size: 1.3rem;">☕ Café-Casa Antigua</h3>
+                <span class="text-light opacity-75" style="font-size: 0.85rem;">Usuario: <strong>{{ session.get('usuario') }}</strong> (Rol: {{ session.get('rol').upper() }})</span>
             </div>
             <div class="d-flex gap-2">
-                <a href="/pedidos" class="btn btn-outline-warning btn-sm" style="color: #d4af37; border-color: #d4af37;">Ver Pedidos</a>
-                <a href="/logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
+                <a href="/pedidos" class="btn btn-outline-warning btn-sm">📦 Ver Pedidos Clientes</a>
+                <a href="/logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
 
-        <div class="row g-4 align-items-start">
-            <div class="col-lg-8">
-                <div style="position: sticky; top: 10px; z-index: 1020; background: transparent; padding-bottom: 10px; padding-top: 5px;">
-                    <div class="card-cafe p-3 mb-0">
-                        <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
-                            <input type="text" class="form-control" name="q" id="buscador-panel" value="{{ busqueda }}" placeholder="Buscar artículos por nombre o categoría...">
-                            <button class="btn btn-dorado ms-2" type="button">Buscar</button>
-                            {% if busqueda %}
-                            <a href="/panel" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
-                            {% endif %}
-                        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" style="font-size: 0.85rem;">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
+        <div class="row g-4">
+            <div class="col-12 col-lg-4">
                 {% if session.get('rol') == 'admin' %}
-                <div class="card-cafe p-3 mb-4 mt-3">
-                    <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
-                    
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-danger py-2 mb-3 text-center" style="font-size: 0.85rem; background-color: #523124; border-color: #7a4835; color: #ffcccc;">
-                                    {{ message }}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <form action="/agregar" method="POST" class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" name="nombre" placeholder="Ej. Café" required>
+                <div class="card-cafe p-3 mb-3">
+                    <h5 class="text-dorado mb-3 fw-bold" style="font-size: 1rem;">➕ Agregar Producto</h5>
+                    <form method="POST" action="/agregar">
+                        <div class="mb-2">
+                            <label class="form-label text-light" style="font-size: 0.8rem;">Nombre:</label>
+                            <input type="text" class="form-control form-control-sm" name="nombre" required>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Categoría</label>
-                            <input type="text" class="form-control" name="categoria" placeholder="Ej. GRANOS" required>
+                        <div class="mb-2">
+                            <label class="form-label text-light" style="font-size: 0.8rem;">Categoría:</label>
+                            <select class="form-select form-select-sm" name="categoria" required>
+                                <option value="" disabled selected>Seleccione una categoría</option>
+                                <option value="CAFÉ">CAFÉ</option>
+                                <option value="BEBIDAS">BEBIDAS</option>
+                                <option value="POSTRES">POSTRES</option>
+                                <option value="SNACKS">SNACKS</option>
+                                <option value="GENERAL">GENERAL</option>
+                            </select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Precio</label>
-                            <input type="number" step="0.01" class="form-control" name="precio" placeholder="0.00" required>
+                        <div class="mb-2">
+                            <label class="form-label text-light" style="font-size: 0.8rem;">Precio ($):</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="precio" required>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Stock</label>
-                            <input type="number" class="form-control" name="stock" placeholder="0" required>
+                        <div class="mb-2">
+                            <label class="form-label text-light" style="font-size: 0.8rem;">Stock inicial:</label>
+                            <input type="number" class="form-control form-control-sm" name="stock" required>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">URL Imagen</label>
-                            <input type="text" class="form-control" name="imagen" placeholder="https://...">
+                        <div class="mb-3">
+                            <label class="form-label text-light" style="font-size: 0.8rem;">URL Imagen (Opcional):</label>
+                            <input type="text" class="form-control form-control-sm" name="imagen">
                         </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-dorado px-4">Guardar Producto</button>
-                        </div>
+                        <button type="submit" class="btn btn-dorado w-100 btn-sm">Guardar en Inventario</button>
                     </form>
                 </div>
                 {% endif %}
 
-                <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
-                <div class="row g-3" id="contenedor-inventario">
-                    {% for prod in productos %}
-                    <div class="col-md-6 col-xl-4 producto-item-panel" data-nombre="{{ prod.nombre|lower }}" data-categoria="{{ prod.categoria|lower }}">
-                        <div class="card-cafe p-2 h-100 d-flex flex-column justify-content-between" style="font-size: 0.9rem;">
-                            <div>
-                                <div class="img-producto-container">
-                                    <img src="{{ prod.imagen }}" class="img-producto" alt="{{ prod.nombre }}">
-                                </div>
-                                <span class="badge-categoria">{{ prod.categoria }}</span>
-                                <h6 class="fw-bold mt-2 mb-1">{{ prod.nombre }}</h6>
-                                <h5 class="text-dorado mb-1">${{ "%.2f"|format(prod.precio) }}</h5>
-                                <p class="text-claro-sub mb-2" style="font-size: 0.8rem;">Disponibles: {{ prod.stock }}</p>
-                                {% if prod.stock <= 5 %}
-                                <div class="badge bg-danger mb-2" style="font-size: 0.65rem;">STOCK CRÍTICO</div>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
-                                    <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
-                                    <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-1" style="background-color: #198754; border: none; font-size: 0.75rem;">VENDER</button>
-                                </form>
-                                <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
-                                    <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
-                                    <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold py-1" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124; font-size: 0.75rem;">+ STOCK</button>
-                                </form>
-                                
-                                {% if session.get('rol') == 'admin' %}
-                                <div class="text-end">
-                                    <a href="/eliminar/{{ prod.id }}" class="text-danger text-decoration-none" style="font-size: 0.75rem;">ELIMINAR</a>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
+                <div class="card-cafe p-3">
+                    <h5 class="text-dorado mb-2 fw-bold" style="font-size: 1rem;">📊 Resumen del Día</h5>
+                    <p class="text-light m-0" style="font-size: 0.85rem;">Total Ingresado:</p>
+                    <h3 class="text-success fw-bold mb-3">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
+                    
+                    <div class="d-flex flex-column gap-2">
+                        <a href="/reporte-pdf?tipo=diario" class="btn btn-outline-light btn-sm text-start">📄 Descargar Reporte Diario (PDF)</a>
+                        <a href="/reporte-pdf?tipo=semanal" class="btn btn-outline-light btn-sm text-start">📄 Descargar Reporte Semanal (PDF)</a>
+                        <a href="/reporte-pdf?tipo=mensual" class="btn btn-outline-light btn-sm text-start">📄 Descargar Reporte Mensual (PDF)</a>
                     </div>
-                    {% else %}
-                    <div class="col-12">
-                        <p class="text-center text-muted">No hay productos registrados en el inventario.</p>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
 
-            <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
-                <div class="card-cafe p-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="text-dorado m-0 fw-bold">CONTROL DE VENTAS Y REPORTES</h6>
-                    </div>
-                    
-                    <div class="d-flex flex-column gap-2 mb-3">
-                        <a href="/reporte-pdf?tipo=diario" target="_blank" class="btn btn-dorado btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px;">
-                            Generar Reporte Diario (PDF)
-                        </a>
-                        <a href="/reporte-pdf?tipo=semanal" target="_blank" class="btn btn-outline-warning btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px; color: #d4af37; border-color: #d4af37;">
-                            Generar Reporte Semanal (PDF)
-                        </a>
-                        <a href="/reporte-pdf?tipo=mensual" target="_blank" class="btn btn-outline-light btn-sm fw-bold py-1 px-3 shadow-sm text-center" style="font-size: 0.8rem; border-radius: 8px;">
-                            Generar Reporte Mensual (PDF)
-                        </a>
+            <div class="col-12 col-lg-8">
+                <div class="card-cafe p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-dorado m-0 fw-bold" style="font-size: 1rem;">📋 Inventario Actual</h5>
+                        <form method="GET" action="/panel" class="d-flex gap-1" style="max-width: 250px;">
+                            <input type="text" class="form-control form-control-sm" name="q" value="{{ busqueda }}" placeholder="Buscar...">
+                            <button class="btn btn-dorado btn-sm" type="submit">🔍</button>
+                        </form>
                     </div>
 
-                    <div class="p-3 mb-3 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <p class="mb-1 text-claro-sub" style="font-size: 0.85rem;">Dinero Ingresado Hoy:</p>
-                        <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
-                    </div>
-                    
-                    <div class="mb-3 p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
-                    </div>
-                    
-                    <h6 class="text-claro-sub mb-2" style="font-size: 0.85rem;">Historial del Día</h6>
-                    <div class="d-flex flex-column gap-2" style="max-height: 150px; overflow-y: auto;">
-                        {% for v in ventas_del_dia %}
-                        <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span class="text-light">{{ v.producto }} (x{{ v.cantidad }})</span>
-                                <span class="text-success">+${{ "%.2f"|format(v.total) }}</span>
-                            </div>
-                            <div class="text-claro-sub" style="font-size: 0.75rem;">Atendido por: <strong class="text-warning">{{ v.usuario }}</strong></div>
-                        </div>
-                        {% else %}
-                        <p class="text-muted text-center m-0" style="font-size: 0.8rem;">Sin ventas registradas hoy.</p>
-                        {% endfor %}
+                    <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                        <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.85rem;">
+                            <thead>
+                                <tr class="text-warning">
+                                    <th>Img</th>
+                                    <th>Nombre</th>
+                                    <th>Cat</th>
+                                    <th>Precio</th>
+                                    <th>Stock</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prod in productos %}
+                                <tr>
+                                    <td>
+                                        <div class="img-admin-container">
+                                            <img src="{{ prod.imagen }}" class="img-admin" alt="Prod">
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold">{{ prod.nombre }}</td>
+                                    <td><span class="badge-stock">{{ prod.categoria }}</span></td>
+                                    <td class="text-success">${{ "%.2f"|format(prod.precio) }}</td>
+                                    <td>
+                                        <span class="badge {% if prod.stock <= 5 %}bg-danger{% elif prod.stock <= 15 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                            {{ prod.stock }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-1">
+                                                <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center p-0" style="width: 40px; font-size: 0.75rem;">
+                                                <button type="submit" class="btn btn-success btn-sm py-0 px-1" title="Vender">Vender</button>
+                                            </form>
+                                            <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-1">
+                                                <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center p-0" style="width: 40px; font-size: 0.75rem;">
+                                                <button type="submit" class="btn btn-outline-warning btn-sm py-0 px-1" title="Aumentar Stock">+</button>
+                                            </form>
+                                            {% if session.get('rol') == 'admin' %}
+                                            <a href="/eliminar/{{ prod.id }}" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="return confirm('¿Eliminar producto?');">🗑️</a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">No hay productos registrados.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {% if session.get('rol') == 'admin' %}
-                <div class="card-cafe p-3">
-                    <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE</h6>
-                    <div class="d-flex flex-column gap-2" style="max-height: 220px; overflow-y: auto;">
-                        {% for item in historial_permanente %}
-                        <div class="p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.8rem;">
-                            <div class="d-flex justify-content-between">
-                                <span class="fw-bold text-warning">[{{ item.accion }}] {{ item.producto }}</span>
-                                <span class="text-claro-sub" style="font-size: 0.75rem;">{{ item.fecha }}</span>
-                            </div>
-                            <div class="text-claro-sub">Cant: {{ item.cantidad }} | Responsable: <strong class="text-light">{{ item.usuario }}</strong></div>
-                        </div>
-                        {% endfor %}
+                <div class="card-cafe p-3 mb-3">
+                    <h5 class="text-dorado mb-2 fw-bold" style="font-size: 1rem;">🧾 Transacciones del Día</h5>
+                    <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                        <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.8rem;">
+                            <thead>
+                                <tr class="text-warning">
+                                    <th>Hora</th>
+                                    <th>Producto</th>
+                                    <th>Cant</th>
+                                    <th>Total</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for v in ventas_del_dia %}
+                                <tr>
+                                    <td>{{ v.fecha[11:19] }}</td>
+                                    <td>{{ v.producto }}</td>
+                                    <td>{{ v.cantidad }}</td>
+                                    <td class="text-success">${{ "%.2f"|format(v.total) }}</td>
+                                    <td>{{ v.usuario }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-2">Sin ventas registradas hoy.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                {% endif %}
+
+                <div class="card-cafe p-3">
+                    <h5 class="text-dorado mb-2 fw-bold" style="font-size: 1rem;">📜 Historial General de Auditoría</h5>
+                    <div class="table-responsive" style="max-height: 180px; overflow-y: auto;">
+                        <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.8rem;">
+                            <thead>
+                                <tr class="text-warning">
+                                    <th>Fecha/Hora</th>
+                                    <th>Acción</th>
+                                    <th>Producto</th>
+                                    <th>Cant</th>
+                                    <th>Total</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for h in historial_permanente %}
+                                <tr>
+                                    <td>{{ h.fecha }}</td>
+                                    <td>{{ h.accion }}</td>
+                                    <td>{{ h.producto }}</td>
+                                    <td>{{ h.cantidad }}</td>
+                                    <td class="text-success">${{ "%.2f"|format(h.total) }}</td>
+                                    <td>{{ h.usuario }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-2">Sin registros en el historial.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <footer class="text-center mt-4 text-light opacity-50" style="font-size: 0.75rem;">
+            © 2026 Café-Casa Antigua.
+        </footer>
     </div>
-
-    <script>
-        const buscadorPanel = document.getElementById('buscador-panel');
-        if (buscadorPanel) {
-            buscadorPanel.addEventListener('input', function() {
-                const valor = this.value.toLowerCase().trim();
-                const items = document.querySelectorAll('.producto-item-panel');
-                
-                items.forEach(item => {
-                    const nombre = item.getAttribute('data-nombre');
-                    const categoria = item.getAttribute('data-categoria');
-                    
-                    if (nombre.includes(valor) || categoria.includes(valor)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        }
-
-        const ctx = document.getElementById('graficaVentas').getContext('2d');
-        const ventasData = {};
-        {% for v in ventas_del_dia %}
-            if (ventasData["{{ v.producto }}"]) {
-                ventasData["{{ v.producto }}"] += {{ v.total }};
-            } else {
-                ventasData["{{ v.producto }}"] = {{ v.total }};
-            }
-        {% endfor %}
-
-        const labels = Object.keys(ventasData);
-        const dataValues = Object.values(ventasData);
-
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels.length > 0 ? labels : ['Sin ventas'],
-                datasets: [{
-                    label: 'Ventas en $',
-                    data: dataValues.length > 0 ? dataValues : [0],
-                    backgroundColor: '#d4af37',
-                    borderColor: '#e5c158',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { ticks: { color: '#f8f9fa' }, grid: { color: '#523124' } },
-                    x: { ticks: { color: '#f8f9fa' }, grid: { display: false } }
-                }
-            }
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
