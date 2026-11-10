@@ -105,6 +105,58 @@ def inicializar_bd():
                 fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION sp_vender_producto(p_prod_id INT, p_cant INT, p_usuario TEXT)
+            RETURNS BOOLEAN AS $$
+            DECLARE
+                v_nombre TEXT;
+                v_precio NUMERIC(12,2);
+                v_stock INT;
+                v_total NUMERIC(12,2);
+            BEGIN
+                SELECT nombre, precio, stock INTO v_nombre, v_precio, v_stock 
+                FROM productos WHERE id = p_prod_id;
+                
+                IF v_stock >= p_cant THEN
+                    v_total := v_precio * p_cant;
+                    
+                    UPDATE productos SET stock = stock - p_cant WHERE id = p_prod_id;
+                    
+                    INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha)
+                    VALUES (v_nombre, p_cant, v_total, p_usuario, CURRENT_TIMESTAMP);
+                    
+                    INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha)
+                    VALUES ('Venta (Procedimiento Almacenado)', v_nombre, p_cant, p_usuario, v_total, CURRENT_TIMESTAMP);
+                    
+                    RETURN TRUE;
+                ELSE
+                    RETURN FALSE;
+                END IF;
+            END;
+            $$ LANGUAGE plpgsql;
+        """)
+
+        cursor.execute("""
+            CREATE OR REPLACE FUNCTION trg_fn_auditar_stock()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                IF (NEW.stock <> OLD.stock) THEN
+                    INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha)
+                    VALUES ('Modificación Stock (Trigger)', NEW.nombre, ABS(NEW.stock - OLD.stock), 'Sistema Trigger', 0, CURRENT_TIMESTAMP);
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        """)
+
+        cursor.execute("""
+            DROP TRIGGER IF EXISTS trg_stock_cambio ON productos;
+            CREATE TRIGGER trg_stock_cambio
+            AFTER UPDATE ON productos
+            FOR EACH ROW
+            EXECUTE FUNCTION trg_fn_auditar_stock();
+        """)
         
         conexion.commit()
         cursor.close()
@@ -386,19 +438,11 @@ def cambiar_estatus_pedido(pedido_id):
                     nombre_p = parte.split('(')[0].strip()
                     cant_p = int(parte.split('(')[1].replace(')', '').replace('x', '').strip())
                     
-                    cursor.execute("SELECT id, stock, precio FROM productos WHERE nombre = %s;", (nombre_p,))
+                    cursor.execute("SELECT id FROM productos WHERE nombre = %s;", (nombre_p,))
                     prod_info = cursor.fetchone()
                     if prod_info:
-                        p_id, p_stock, p_precio = prod_info[0], prod_info[1], float(prod_info[2])
-                        nuevo_stock = max(0, p_stock - cant_p)
-                        cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, p_id))
-                        
-                        total_v = p_precio * cant_p
-                        fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
-                        cursor.execute("INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha) VALUES (%s, %s, %s, %s, %s);",
-                                       (nombre_p, cant_p, total_v, session.get('usuario'), fecha_str))
-                        cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
-                                       ('Venta Pedido Cliente', nombre_p, cant_p, session.get('usuario'), total_v, fecha_str))
+                        p_id = prod_info[0]
+                        cursor.execute("SELECT sp_vender_producto(%s, %s, %s);", (p_id, cant_p, session.get('usuario')))
 
         cursor.execute("UPDATE pedidos SET estatus = %s WHERE id = %s;", (nuevo_estatus, pedido_id))
         conexion.commit()
@@ -439,10 +483,6 @@ def agregar():
     cursor.execute("INSERT INTO productos (nombre, categoria, precio, stock, imagen) VALUES (%s, %s, %s, %s, %s);",
                    (nombre, categoria, precio, stock, imagen))
     
-    fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
-    cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
-                   ('Creación Inventario', nombre, stock, session.get('usuario'), 0, fecha_str))
-    
     conexion.commit()
     cursor.close()
     conexion.close()
@@ -462,23 +502,8 @@ def vender(prod_id):
         
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute("SELECT nombre, precio, stock FROM productos WHERE id = %s;", (prod_id,))
-    prod = cursor.fetchone()
-    
-    if prod:
-        nombre, precio, stock = prod[0], float(prod[1]), prod[2]
-        if stock >= cantidad:
-            nuevo_stock = stock - cantidad
-            total_venta = precio * cantidad
-            fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
-            
-            cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, prod_id))
-            cursor.execute("INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha) VALUES (%s, %s, %s, %s, %s);",
-                           (nombre, cantidad, total_venta, session.get('usuario'), fecha_str))
-            cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
-                           ('Venta', nombre, cantidad, session.get('usuario'), total_venta, fecha_str))
-            conexion.commit()
-            
+    cursor.execute("SELECT sp_vender_producto(%s, %s, %s);", (prod_id, cantidad, session.get('usuario')))
+    conexion.commit()
     cursor.close()
     conexion.close()
     return redirect(url_for('panel'))
@@ -495,17 +520,13 @@ def incrementar(prod_id):
         
     conexion = obtener_conexion()
     cursor = conexion.cursor()
-    cursor.execute("SELECT nombre, stock FROM productos WHERE id = %s;", (prod_id,))
+    cursor.execute("SELECT stock FROM productos WHERE id = %s;", (prod_id,))
     prod = cursor.fetchone()
     
     if prod:
-        nombre, stock = prod[0], prod[1]
-        nuevo_stock = stock + cantidad
-        fecha_str = obtener_tiempo_local().strftime("%Y-%m-%d %H:%M")
-        
+        stock_actual = prod[0]
+        nuevo_stock = stock_actual + cantidad
         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, prod_id))
-        cursor.execute("INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha) VALUES (%s, %s, %s, %s, %s, %s);",
-                       ('Incremento Stock', nombre, cantidad, session.get('usuario'), 0, fecha_str))
         conexion.commit()
         
     cursor.close()
@@ -537,11 +558,11 @@ def reporte_pdf():
     tiempo_actual_local = obtener_tiempo_local()
     if tipo == 'semanal':
         hace_7_dias = (tiempo_actual_local - timedelta(days=7)).strftime("%Y-%m-%d 00:00:00")
-        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_7_dias,))
+        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente', 'Venta (Procedimiento Almacenado)') AND fecha >= %s ORDER BY id DESC;", (hace_7_dias,))
         titulo_periodo = "REPORTE DETALLADO DE VENTAS SEMANALES"
     elif tipo == 'mensual':
         hace_30_dias = (tiempo_actual_local - timedelta(days=30)).strftime("%Y-%m-%d 00:00:00")
-        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente') AND fecha >= %s ORDER BY id DESC;", (hace_30_dias,))
+        cursor.execute("SELECT producto, cantidad, total, usuario, fecha FROM historial WHERE accion IN ('Venta', 'Venta Pedido Cliente', 'Venta (Procedimiento Almacenado)') AND fecha >= %s ORDER BY id DESC;", (hace_30_dias,))
         titulo_periodo = "REPORTE DETALLADO DE VENTAS MENSUALES"
     else:
         verificar_cambio_dia()
