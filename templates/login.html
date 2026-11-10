@@ -1,11 +1,19 @@
+
+# Vista exclusiva para el inicio de sesión del personal interno 
+# (administradores y empleados), con manejo de alertas de error. 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Personal - Café-Casa Antigua</title>
+
+    # Framework Bootstrap para maquetación limpia y moderna 
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Estilos centrados con fondo oscuro y tonos café institucionales */
         body { 
             margin: 0;
             padding: 0;
@@ -44,6 +52,7 @@
         <h3 class="fw-bold text-dorado text-center mb-1">Acceso Personal</h3>
         <p class="text-center text-light opacity-75 mb-3" style="font-size: 0.85rem;">Administración y Empleados</p>
         
+        <!-- Bloque condicional con Jinja2 para mostrar mensajes flash de error en el login -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -54,6 +63,7 @@
             {% endif %}
         {% endwith %}
 
+        # Formulario POST que envía credenciales al controlador /login
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">Usuario</label>

@@ -1,11 +1,18 @@
+# Esta es la página principal de bienvenida del sistema, 
+# diseñada como punto de entrada público para clientes y administradores.
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Café-Casa Antigua</title>
+
+    # Framework Bootstrap para maquetación rápida
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Estilos visuales de la portada con temática de café */
         body {
             margin: 0;
             padding: 0;
@@ -21,6 +28,7 @@
             color: #f8f9fa;
             position: relative;
         }
+        /* Botón flotante superior derecho para acceso al personal administrativo */
         .admin-link {
             position: absolute;
             top: 20px;
@@ -77,13 +85,21 @@
     </style>
 </head>
 <body>
+
+    # Enlace directo para que los administradores y empleados inicien sesión
+
     <a href="/login" class="admin-link">Área de administración</a>
+
+    # Contenedor central con la bienvenida institucional 
 
     <div class="main-box">
         <div class="fs-1 mb-2">☕</div>
         <h1 class="welcome-heading">Bienvenido</h1>
         <p class="welcome-subtitle">Café-Casa Antigua — Rubio, Estado Táchira</p>
         <div class="d-flex flex-column gap-2 align-items-center">
+            
+            # Acceso al catálogo digital para los clientes
+
             <a href="/catalogo" class="btn-custom-catalogo">Catálogo en línea</a>
             <a href="/cliente-login" class="text-warning text-decoration-none" style="font-size: 0.85rem;">¿Eres cliente? Inicia sesión aquí</a>
         </div>

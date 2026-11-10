@@ -1,3 +1,6 @@
+# Aquí importamos todo lo necesario: Flask para las rutas web, 
+# pg8000 para conectar con PostgreSQL, y reportlab para los PDF.
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash, make_response
 from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timedelta
@@ -12,13 +15,21 @@ from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+# aqui se inicializa la app de Flask y la clave de sesión secreta para las cookies de usuario
+
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_casa_antigua_2026'
 
+# Esto ayuda a que Flask reconozca las cabeceras reales cuando está montado en la nube (Render)
+
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Ojo con esto: ajusta la hora a UTC-4 porque el servidor en la nube está en otro horario
 
 def obtener_tiempo_local():
     return datetime.utcnow() - timedelta(hours=4)
+
+# Aquí conecto con PostgreSQL (lee la URL de Render o usa los datos locales por defecto)
 
 def obtener_conexion():
     database_url = os.environ.get("DATABASE_URL")
@@ -45,11 +56,15 @@ def obtener_conexion():
             ssl_context=True
         )
 
+# aqui se crean las tablas, procedimientos almacenados y triggers al arrancar
+
 def inicializar_bd():
     try:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
         
+        # Tabla de productos del inventario
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS productos (
                 id SERIAL PRIMARY KEY,
@@ -61,6 +76,8 @@ def inicializar_bd():
             );
         """)
         
+        # Tabla de clientes registrados para hacer pedidos online
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS clientes (
                 id SERIAL PRIMARY KEY,
@@ -71,6 +88,8 @@ def inicializar_bd():
             );
         """)
         
+        # Tabla para los pedidos que mandan los clientes
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS pedidos (
                 id SERIAL PRIMARY KEY,
@@ -83,6 +102,8 @@ def inicializar_bd():
             );
         """)
         
+        # Tabla temporal de las ventas del día actual
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS ventas_diarias (
                 id SERIAL PRIMARY KEY,
@@ -94,6 +115,8 @@ def inicializar_bd():
             );
         """)
         
+        # Tabla de auditoría permanente (aquí caen los triggers)
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS historial (
                 id SERIAL PRIMARY KEY,
@@ -106,6 +129,10 @@ def inicializar_bd():
             );
         """)
 
+    
+        # PROCEDIMIENTO ALMACENADO: sp_vender_producto
+        # se crea en PL/pgSQL para manejar las ventas de forma atómica en la BD
+
         cursor.execute("""
             CREATE OR REPLACE FUNCTION sp_vender_producto(p_prod_id INT, p_cant INT, p_usuario TEXT)
             RETURNS BOOLEAN AS $$
@@ -115,17 +142,22 @@ def inicializar_bd():
                 v_stock INT;
                 v_total NUMERIC(12,2);
             BEGIN
+                -- Consulto los datos actuales del producto
                 SELECT nombre, precio, stock INTO v_nombre, v_precio, v_stock 
                 FROM productos WHERE id = p_prod_id;
                 
+                -- Verifico si hay suficientes existencias
                 IF v_stock >= p_cant THEN
                     v_total := v_precio * p_cant;
                     
+                    -- Descuento el stock directamente en la tabla
                     UPDATE productos SET stock = stock - p_cant WHERE id = p_prod_id;
                     
+                    -- Inserto en el registro diario
                     INSERT INTO ventas_diarias (producto, cantidad, total, usuario, fecha)
                     VALUES (v_nombre, p_cant, v_total, p_usuario, CURRENT_TIMESTAMP);
                     
+                    -- Dejo huella en el historial de auditoría
                     INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha)
                     VALUES ('Venta (Procedimiento Almacenado)', v_nombre, p_cant, p_usuario, v_total, CURRENT_TIMESTAMP);
                     
@@ -137,10 +169,14 @@ def inicializar_bd():
             $$ LANGUAGE plpgsql;
         """)
 
+        
+        # TRIGGER Y SU FUNCIÓN: Auditoría automática de stock
+        
         cursor.execute("""
             CREATE OR REPLACE FUNCTION trg_fn_auditar_stock()
             RETURNS TRIGGER AS $$
             BEGIN
+                -- Si el stock cambia, anoto la diferencia automáticamente en el historial
                 IF (NEW.stock <> OLD.stock) THEN
                     INSERT INTO historial (accion, producto, cantidad, usuario, total, fecha)
                     VALUES ('Modificación Stock (Trigger)', NEW.nombre, ABS(NEW.stock - OLD.stock), 'Sistema Trigger', 0, CURRENT_TIMESTAMP);
@@ -149,6 +185,8 @@ def inicializar_bd():
             END;
             $$ LANGUAGE plpgsql;
         """)
+
+        # Vinculo el trigger a la tabla productos (se ejecuta despues de un UPDATE)
 
         cursor.execute("""
             DROP TRIGGER IF EXISTS trg_stock_cambio ON productos;
@@ -164,7 +202,11 @@ def inicializar_bd():
     except Exception as e:
         print(f"Error al inicializar la base de datos: {e}")
 
+# Ejecuto la inicialización apenas arranca el servidor
+
 inicializar_bd()
+
+# Función auxiliar para limpiar las ventas si ya pasó al día siguiente
 
 def verificar_cambio_dia():
     hoy_str = obtener_tiempo_local().strftime("%Y-%m-%d")
@@ -185,9 +227,15 @@ def verificar_cambio_dia():
     except Exception:
         pass
 
+
+# RUTAS Y CONTROLADORES DE FLASK
+
+
 @app.route('/')
 def inicio():
     return render_template('welcome.html')
+
+# Ruta de inicio de sesión para empleados y administradores
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -275,6 +323,8 @@ def cliente_logout():
     session.pop('cliente_id', None)
     session.pop('cliente_nombre', None)
     return redirect(url_for('inicio'))
+
+# Panel principal administrativo (Muestra inventario, ventas y auditoría)
 
 @app.route('/panel')
 def panel():
@@ -430,6 +480,8 @@ def cambiar_estatus_pedido(pedido_id):
         estatus_actual = pedido[0]
         detalle = pedido[1]
         
+        # Si marca el pedido como pagado, descuenta el stock usando el procedimiento almacenado
+
         if estatus_actual == 'No Pagado' and nuevo_estatus == 'Pagado':
             partes = detalle.split(',')
             for parte in partes:
@@ -489,6 +541,8 @@ def agregar():
         
     return redirect(url_for('panel'))
 
+# Ruta de venta rápida (Aquí llamamos al procedimiento almacenado sp_vender_producto)
+
 @app.route('/vender/<int:prod_id>', methods=['POST'])
 def vender(prod_id):
     if 'usuario' not in session:
@@ -502,6 +556,9 @@ def vender(prod_id):
         
     conexion = obtener_conexion()
     cursor = conexion.cursor()
+
+    # Ejecutamos el Stored Procedure de PostgreSQL
+    
     cursor.execute("SELECT sp_vender_producto(%s, %s, %s);", (prod_id, cantidad, session.get('usuario')))
     conexion.commit()
     cursor.close()
@@ -526,6 +583,7 @@ def incrementar(prod_id):
     if prod:
         stock_actual = prod[0]
         nuevo_stock = stock_actual + cantidad
+        # Esto disparará automáticamente el trigger trg_stock_cambio en la base de datos
         cursor.execute("UPDATE productos SET stock = %s WHERE id = %s;", (nuevo_stock, prod_id))
         conexion.commit()
         
@@ -545,6 +603,8 @@ def eliminar(prod_id):
     cursor.close()
     conexion.close()
     return redirect(url_for('panel'))
+
+# Generación de reportes en PDF usando ReportLab
 
 @app.route('/reporte-pdf')
 def reporte_pdf():
