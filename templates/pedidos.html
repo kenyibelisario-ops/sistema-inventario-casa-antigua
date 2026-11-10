@@ -1,5 +1,5 @@
-# Esta vista muestra la lista de pedidos online que hacen los clientes, 
-# con un buscador en tiempo real y la opción de cambiar estatus a pagado. 
+<!-- Esta vista muestra la lista de pedidos online que hacen los clientes, -->
+<!-- con un buscador en tiempo real y la opción de cambiar estatus a pagado. -->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -34,9 +34,7 @@
 </head>
 <body>
     <div class="container">
-
-        # Encabezado superior con botón de retorno al panel de administración
-
+        <!-- Encabezado superior con botón de retorno al panel de administración -->
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
                 <h3 class="fw-bold text-dorado m-0">📦 Módulo de Pedidos</h3>
@@ -47,16 +45,14 @@
             </div>
         </div>
 
-        # Barra de búsqueda rápida en tiempo real para filtrar pedidos 
-
+        <!-- Barra de búsqueda rápida en tiempo real para filtrar pedidos -->
         <div class="card-cafe p-3 mb-4">
             <div class="input-group">
                 <input type="text" class="form-control" id="buscador-pedidos" placeholder="🔍 Buscar por nombre del cliente o detalle del pedido en tiempo real...">
             </div>
         </div>
 
-        # Tarjeta que envuelve la tabla principal de pedidos 
-
+        <!-- Tarjeta que envuelve la tabla principal de pedidos -->
         <div class="card-cafe p-3">
             <div class="table-responsive">
                 <table class="table table-dark table-sm align-middle" style="background-color: transparent; font-size: 0.9rem;">
@@ -71,9 +67,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabla-pedidos-body">
-
-                        # Iteración mediante Jinja2 para pintar cada pedido recibido de la BD 
-
+                        <!-- Iteración mediante Jinja2 para pintar cada pedido recibido de la BD -->
                         {% for p in pedidos %}
                         <tr class="pedido-row" data-cliente="{{ p.cliente|lower }}" data-detalle="{{ p.detalle|lower }}">
                             <td>{{ p.fecha }}</td>
@@ -81,17 +75,13 @@
                             <td>{{ p.detalle }}</td>
                             <td class="text-success">${{ "%.2f"|format(p.total) }}</td>
                             <td>
-
-                                # Etiqueta dinámica según el estado del pedido 
-
+                                <!-- Etiqueta dinámica según el estado del pedido -->
                                 <span class="badge {% if p.estatus == 'Pagado' %}bg-success{% else %}bg-warning text-dark{% endif %}">
                                     {{ p.estatus }}
                                 </span>
                             </td>
                             <td>
-
-                                # Formulario que envía el cambio de estatus al servidor 
-
+                                <!-- Formulario que envía el cambio de estatus al servidor -->
                                 <form action="/cambiar-estatus-pedido/{{ p.id }}" method="POST" class="d-flex gap-1">
                                     <select name="estatus" class="form-select form-select-sm" style="font-size: 0.75rem; width: 110px;">
                                         <option value="No Pagado" {% if p.estatus == 'No Pagado' %}selected{% endif %}>No Pagado</option>
@@ -112,8 +102,7 @@
         </div>
     </div>
 
-    # Script de filtrado dinámico en el navegador
-     
+    <!-- Script de filtrado dinámico en el navegador -->
     <script>
         const buscadorPedidos = document.getElementById('buscador-pedidos');
         if (buscadorPedidos) {

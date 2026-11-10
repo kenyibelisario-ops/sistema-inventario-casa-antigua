@@ -1,6 +1,5 @@
-
-# Formulario de autorregistro para nuevos clientes del sistema
-# capturando datos personales y credenciales de acceso.
+<!-- Formulario de autorregistro para nuevos clientes del sistema, -->
+<!-- capturando datos personales y credenciales de acceso. -->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -48,8 +47,7 @@
     <div class="card-cafe">
         <h3 class="fw-bold text-dorado text-center mb-3">Registro de Cliente</h3>
         
-        # Bloque de control de errores mediante mensajes flash 
-
+        <!-- Bloque de control de errores mediante mensajes flash -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -60,7 +58,7 @@
             {% endif %}
         {% endwith %}
 
-        # Formulario POST que envía los datos del nuevo cliente al controlador de registro 
+        <!-- Formulario POST que envía los datos del nuevo cliente al controlador de registro -->
         <form method="POST">
             <div class="mb-2">
                 <label class="form-label">Nombre</label>

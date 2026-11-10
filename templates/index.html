@@ -1,5 +1,5 @@
-# Vista del panel principal de gestión de inventario, ventas
-# y reportes con gráficas estadísticas para el personal.
+<!-- Vista del panel principal de gestión de inventario, ventas -->
+<!-- y reportes con gráficas estadísticas para el personal. -->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -63,8 +63,7 @@
 </head>
 <body>
     <div class="container-fluid">
-        # Barra superior con datos de sesión del usuario logueado
-
+        <!-- Barra superior con datos de sesión del usuario logueado -->
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
                 <h3 class="fw-bold text-dorado m-0">Café-Casa Antigua</h3>
@@ -78,8 +77,7 @@
 
         <div class="row g-4 align-items-start">
             <div class="col-lg-8">
-                # Buscador flotante para filtrar el inventario en tiempo real
-
+                <!-- Buscador flotante para filtrar el inventario en tiempo real -->
                 <div style="position: sticky; top: 10px; z-index: 1020; background: transparent; padding-bottom: 10px; padding-top: 5px;">
                     <div class="card-cafe p-3 mb-0">
                         <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
@@ -92,8 +90,7 @@
                     </div>
                 </div>
 
-                # Formulario exclusivo para administradores para registrar nuevos productos
-
+                <!-- Formulario exclusivo para administradores para registrar nuevos productos -->
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3 mb-4 mt-3">
                     <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
@@ -117,12 +114,11 @@
                             <label class="form-label">Categoría</label>
                             <select class="form-select" name="categoria" required>
                                 <option value="" disabled selected>Seleccione...</option>
-                                <option value="Limpieza y Aseo Personal">Limpieza y Aseo Personal</option>
-                                <option value="Bebidas y Refrescos">Bebidas y Refrescos</option>
-                                <option value="Cesta Basica y Granos">Cesta Basica y Granos</option>
-                                <option value="Snacks">Snacks</option>
-                                <option value="Enlatados y Conservas">Enlatados y Conservas</option>
-                                <option value="Lacteos y Derivados">Lacteos y Derivados</option>
+                                <option value="CAFÉ">CAFÉ</option>
+                                <option value="BEBIDAS">BEBIDAS</option>
+                                <option value="POSTRES">POSTRES</option>
+                                <option value="SNACKS">SNACKS</option>
+                                <option value="GENERAL">GENERAL</option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -144,8 +140,7 @@
                 </div>
                 {% endif %}
 
-                # Cuadrícula de tarjetas de inventario
-
+                <!-- Cuadrícula de tarjetas de inventario -->
                 <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
                 <div class="row g-3" id="contenedor-inventario">
                     {% for prod in productos %}
@@ -164,16 +159,12 @@
                                 {% endif %}
                             </div>
                             <div>
-
-                                # Formulario para procesar ventas directas 
-
+                                <!-- Formulario para procesar ventas directas -->
                                 <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
                                     <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
                                     <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-1" style="background-color: #198754; border: none; font-size: 0.75rem;">VENDER</button>
                                 </form>
-
-                                # Formulario para sumar stock al producto
-
+                                <!-- Formulario para sumar stock al producto -->
                                 <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
                                     <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
                                     <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold py-1" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124; font-size: 0.75rem;">+ STOCK</button>
@@ -195,8 +186,7 @@
                 </div>
             </div>
 
-            # Panel lateral de ventas, métricas y reportes PDF 
-
+            <!-- Panel lateral de ventas, métricas y reportes PDF -->
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -220,8 +210,7 @@
                         <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
                     </div>
                     
-                    # Contenedor para Chart.js
-
+                    <!-- Contenedor para Chart.js -->
                     <div class="mb-3 p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
                         <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
                     </div>
@@ -242,8 +231,7 @@
                     </div>
                 </div>
 
-                # Historial permanente visible solo para administradores
-
+                <!-- Historial permanente visible solo para administradores -->
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3">
                     <h6 class="text-dorado mb-2 fw-bold">HISTORIAL PERMANENTE</h6>
@@ -264,9 +252,62 @@
         </div>
     </div>
 
-    # Script de filtrado y renderizado de la gráfica con Chart.js
-    
+    <!-- Script de filtrado y renderizado de la gráfica con Chart.js -->
     <script>
         const buscadorPanel = document.getElementById('buscador-panel');
         if (buscadorPanel) {
-            buscadorPanel.addEventListener('input', function()
+            buscadorPanel.addEventListener('input', function() {
+                const valor = this.value.toLowerCase().trim();
+                const items = document.querySelectorAll('.producto-item-panel');
+                
+                items.forEach(item => {
+                    const nombre = item.getAttribute('data-nombre');
+                    const categoria = item.getAttribute('data-categoria');
+                    
+                    if (nombre.includes(valor) || categoria.includes(valor)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        const ctx = document.getElementById('graficaVentas').getContext('2d');
+        const ventasData = {};
+        {% for v in ventas_del_dia %}
+            if (ventasData["{{ v.producto }}"]) {
+                ventasData["{{ v.producto }}"] += {{ v.total }};
+            } else {
+                ventasData["{{ v.producto }}"] = {{ v.total }};
+            }
+        {% endfor %}
+
+        const labels = Object.keys(ventasData);
+        const dataValues = Object.values(ventasData);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels.length > 0 ? labels : ['Sin ventas'],
+                datasets: [{
+                    label: 'Ventas en $',
+                    data: dataValues.length > 0 ? dataValues : [0],
+                    backgroundColor: '#d4af37',
+                    borderColor: '#e5c158',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#f8f9fa' }, grid: { color: '#523124' } },
+                    x: { ticks: { color: '#f8f9fa' }, grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

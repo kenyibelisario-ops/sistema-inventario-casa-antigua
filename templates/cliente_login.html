@@ -1,5 +1,5 @@
-# Vista exclusiva para que los clientes del café inicien sesión 
-# con su correo y contraseña, dándoles acceso directo al catálogo digital.
+<!-- Vista exclusiva para que los clientes del café inicien sesión -->
+<!-- con su correo y contraseña, dándoles acceso directo al catálogo digital. -->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -49,8 +49,7 @@
         <h3 class="fw-bold text-dorado text-center mb-1">Acceso de Clientes</h3>
         <p class="text-center text-light opacity-75 mb-3" style="font-size: 0.85rem;">Inicia sesión para realizar pedidos</p>
         
-        # Bloque de mensajes flash para mostrar errores de autenticación
-
+        <!-- Bloque de mensajes flash para mostrar errores de autenticación -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -61,7 +60,7 @@
             {% endif %}
         {% endwith %}
 
-        # Formulario POST que envía el correo y la contraseña al backend 
+        <!-- Formulario POST que envía el correo y la contraseña al backend -->
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">Correo Electrónico</label>
