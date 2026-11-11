@@ -55,9 +55,37 @@
             color: #e5c158 !important;
             text-decoration: underline;
         }
+        /* Botón de Carrito Flotante Tipo Notificación */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1050;
+            background-color: #d4af37;
+            color: #1a0f0a;
+            border: 2px solid #523124;
+            border-radius: 50px;
+            padding: 12px 22px;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .carrito-flotante:hover {
+            background-color: #e5c158;
+            transform: scale(1.05);
+            color: #1a0f0a;
+        }
     </style>
 </head>
 <body>
+    <!-- Botón Flotante del Carrito (Tipo Notificación con movimiento fijo en pantalla) -->
+    <button type="button" class="carrito-flotante shadow-lg" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+        🛒 Carrito <span id="contador-carrito" class="badge bg-danger rounded-pill">0</span>
+    </button>
+
     <div class="container py-3">
         <!-- Barra superior del cliente -->
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
@@ -65,10 +93,7 @@
                 <h3 class="fw-bold text-dorado m-0">☕ Café-Casa Antigua - Catálogo</h3>
                 <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Bienvenido, <strong class="text-white">{{ session.get('cliente_nombre') }}</strong></p>
             </div>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalCarrito" style="color: #d4af37; border-color: #d4af37;">
-                    🛒 Carrito <span id="contador-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                </button>
+            <div>
                 <a href="/cliente-logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -95,7 +120,7 @@
                         </div>
                         <span class="badge-categoria">{{ prod.categoria }}</span>
                         <h5 class="fw-bold mt-2 mb-1">{{ prod.nombre }}</h5>
-                        <h4 class="text-dorado mb-1">${{ "%.2f"|format(prod.precio) }}</h4>
+                        <h4 class="text-dorado mb-1">${{ "%.2f"|format(prod.precio) }} COP</h4>
                         <p class="text-claro-sub mb-3" style="font-size: 0.8rem;">Disponibles: {{ prod.stock }}</p>
                     </div>
                     <div>
@@ -130,9 +155,13 @@
                     <div id="lista-carrito-items" class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
                         <p class="text-muted text-center m-0">El carrito está vacío.</p>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded mb-2" style="background-color: #2e1b14; border: 1px solid #523124;">
+                        <span class="fw-bold">Total a Pagar (COP):</span>
+                        <h4 class="text-success fw-bold m-0" id="carrito-total-cop">$0 COP</h4>
+                    </div>
                     <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <span class="fw-bold">Total a Pagar (USD):</span>
-                        <h4 class="text-success fw-bold m-0" id="carrito-total-txt">$0.00</h4>
+                        <span class="fw-bold">Total a Pagar (Bs):</span>
+                        <h4 class="text-warning fw-bold m-0" id="carrito-total-bs">Bs. 0.00</h4>
                     </div>
                 </div>
                 <div class="modal-footer border-top border-secondary py-2">
@@ -143,7 +172,7 @@
         </div>
     </div>
 
-    <!-- Modal Intermedio de Datos Bancarios y Conversión Fija a Bolívares -->
+    <!-- Modal Intermedio de Datos Bancarios (Ventana Flotante con Totales en COP y Bs) -->
     <div class="modal fade" id="modalDatosPago" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
@@ -167,10 +196,21 @@
                             <span class="text-warning fw-bold">Cédula / RIF:</span> 
                             <span class="text-white copiable" onclick="copiarTexto('30792567')">30792567</span>
                         </div>
-                        <div class="p-2 rounded text-center mt-3" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
-                            <span class="text-light d-block" style="font-size: 0.8rem;">Monto Total en Bolívares (Bs):</span>
-                            <h4 class="text-success fw-bold m-0" id="monto-total-bs">Bs. 0.00</h4>
-                            <span class="text-claro-sub d-block mt-1" style="font-size: 0.7rem;">Calculado automáticamente a tasa BCV fija</span>
+                        
+                        <!-- Totales exactos requeridos (COP y Bolívares automáticos) -->
+                        <div class="row g-2 mt-3">
+                            <div class="col-6">
+                                <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
+                                    <span class="text-light d-block" style="font-size: 0.75rem;">Total en COP:</span>
+                                    <h5 class="text-success fw-bold m-0" id="modal-total-cop">$0 COP</h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
+                                    <span class="text-light d-block" style="font-size: 0.75rem;">Total en Bolívares:</span>
+                                    <h5 class="text-warning fw-bold m-0" id="modal-total-bs">Bs. 0.00</h5>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -207,8 +247,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let carrito = [];
-        let totalUSDGlobal = 0;
-        const TASA_BCV_FIJA = 36.50; // Tasa establecida por el sistema automáticamente al abrir
+        let totalCOPGlobal = 0;
+        const TASA_BCV_FIJA = 36.50; // Tasa establecida automáticamente por el sistema al iniciar
 
         function agregarAlCarrito(id, nombre, precio, stockMax) {
             const inputCant = document.getElementById(`cant_${id}`);
@@ -236,15 +276,17 @@
         function actualizarCarritoUI() {
             const listaContainer = document.getElementById('lista-carrito-items');
             const contadorBadge = document.getElementById('contador-carrito');
-            const totalTxt = document.getElementById('carrito-total-txt');
+            const totalCopTxt = document.getElementById('carrito-total-cop');
+            const totalBsTxt = document.getElementById('carrito-total-bs');
             const btnProcesar = document.getElementById('btn-procesar-compra');
 
             contadorBadge.innerText = carrito.reduce((sum, item) => sum + item.cantidad, 0);
 
             if (carrito.length === 0) {
                 listaContainer.innerHTML = `<p class="text-muted text-center m-0">El carrito está vacío.</p>`;
-                totalTxt.innerText = "$0.00";
-                totalUSDGlobal = 0;
+                totalCopTxt.innerText = "$0 COP";
+                totalBsTxt.innerText = "Bs. 0.00";
+                totalCOPGlobal = 0;
                 btnProcesar.disabled = true;
                 return;
             }
@@ -258,19 +300,22 @@
                     <div class="p-2 rounded d-flex justify-content-between align-items-center" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
                         <div>
                             <div class="fw-bold text-white">${item.nombre}</div>
-                            <div class="text-claro-sub">Cant: ${item.cantidad} x $${item.precio.toFixed(2)}</div>
+                            <div class="text-claro-sub">Cant: ${item.cantidad} x $${item.precio.toLocaleString()} COP</div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="text-success fw-bold">$${subtotal.toFixed(2)}</span>
+                            <span class="text-success fw-bold">$${subtotal.toLocaleString()} COP</span>
                             <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="eliminarDelCarrito(${index})" style="font-size: 0.7rem;">✕</button>
                         </div>
                     </div>
                 `;
             });
 
+            totalCOPGlobal = total;
+            const totalBsCalculado = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2); // Ajusta si la conversión es tasa directa o factor multiplicador según tu lógica de moneda
+
             listaContainer.innerHTML = html;
-            totalTxt.innerText = `$${total.toFixed(2)}`;
-            totalUSDGlobal = total;
+            totalCopTxt.innerText = `$${totalCOPGlobal.toLocaleString()} COP`;
+            totalBsTxt.innerText = `Bs. ${totalBsCalculado}`;
             btnProcesar.disabled = false;
         }
 
@@ -287,17 +332,15 @@
             });
         }
 
-        function calcularBolivaresAutomatico() {
-            const totalBs = totalUSDGlobal * TASA_BCV_FIJA;
-            document.getElementById('monto-total-bs').innerText = `Bs. ${totalBs.toFixed(2)}`;
-        }
-
         function abrirModalPago() {
             const modalCarritoEl = document.getElementById('modalCarrito');
             const modalCarritoObj = bootstrap.Modal.getInstance(modalCarritoEl);
             modalCarritoObj.hide();
 
-            calcularBolivaresAutomatico();
+            // Rellenar montos automáticos en el modal de pago
+            document.getElementById('modal-total-cop').innerText = `$${totalCOPGlobal.toLocaleString()} COP`;
+            const totalBsCalculado = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2);
+            document.getElementById('modal-total-bs').innerText = `Bs. ${totalBsCalculado}`;
 
             const modalPagoEl = new bootstrap.Modal(document.getElementById('modalDatosPago'));
             modalPagoEl.show();
@@ -347,16 +390,16 @@
             let detalleTexto = "";
             carrito.forEach(item => {
                 let sub = item.precio * item.cantidad;
-                detalleTexto += `• ${item.nombre} (x${item.cantidad}) - $${sub.toFixed(2)}%0A`;
+                detalleTexto += `• ${item.nombre} (x${item.cantidad}) - $${sub.toLocaleString()} COP%0A`;
             });
 
-            const montoBs = (totalUSDGlobal * TASA_BCV_FIJA).toFixed(2);
+            const montoBs = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2);
             let infoComprobante = metodoEnvio === 'referencia' ? `Ref. Bancaria: ${referencia}` : `Comprobante enviado en foto`;
 
             let mensaje = `¡Hola! Café-Casa Antigua ☕, deseo confirmar mi pedido:%0A%0A` +
                           `${detalleTexto}%0A` +
-                          `*Total USD:* $${totalUSDGlobal.toFixed(2)}%0A` +
-                          `*Total Bs:* Bs. ${montoBs} (Tasa BCV: ${TASA_BCV_FIJA})%0A` +
+                          `*Total COP:* $${totalCOPGlobal.toLocaleString()} COP%0A` +
+                          `*Total Bs:* Bs. ${montoBs}%0A` +
                           `*Método:* Pago Móvil (Bs)%0A` +
                           `*Comprobante:* ${infoComprobante}%0A%0A` +
                           `_Nota: Recuerde que tiene 12 horas para retirar y abonar su pedido en el establecimiento._`;
@@ -368,7 +411,7 @@
             carrito = [];
             actualizarCarritoUI();
 
-            const numeroWhatsApp = "584121234567";
+            const numeroWhatsApp = "584126759026";
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensaje}`, '_blank');
         }
     </script>
