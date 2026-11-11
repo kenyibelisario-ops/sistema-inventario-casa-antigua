@@ -1,19 +1,17 @@
-<!-- Esta es la interfaz del cliente para ver el menú digital, -->
-<!-- armar un carrito de compras y enviar el pedido por WhatsApp. -->
-
+<!-- ========================================== -->
+<!-- APUNTES DEFENSA - CATALOGO.HTML (CLIENTE)  -->
+<!-- ========================================== -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo Digital - Café-Casa Antigua</title>
-    <!-- Framework Bootstrap para maquetar la interfaz responsiva -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Estilos visuales acordes a la identidad de la cafetería */
         body { 
             margin: 0;
-            padding: 30px;
+            padding: 20px;
             min-height: 100vh;
             background: linear-gradient(rgba(46, 27, 20, 0.85), rgba(46, 27, 20, 0.85)), 
                         url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1920&q=80');
@@ -24,353 +22,348 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
         }
         .card-cafe { background-color: rgba(59, 34, 25, 0.92); border: 1px solid #523124; border-radius: 12px; color: #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .form-control { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
-        .form-control:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
+        .form-control, .form-select { background-color: #2e1b14; border: 1px solid #523124; color: #fff; border-radius: 8px; }
+        .form-control:focus, .form-select:focus { background-color: #2e1b14; border-color: #e5c158; color: #fff; box-shadow: 0 0 0 0.25rem rgba(212,175,55,0.25); }
         .btn-dorado { background-color: #d4af37; color: #1a0f0a; font-weight: bold; border: none; border-radius: 8px; }
         .btn-dorado:hover { background-color: #e5c158; color: #1a0f0a; }
         .text-dorado { color: #e5c158 !important; }
-        .badge-stock { background-color: #523124; color: #e5c158; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        .text-claro-sub { color: rgba(255, 255, 255, 0.75) !important; }
+        .badge-categoria { background-color: #523124; color: #e5c158; font-size: 0.7rem; padding: 3px 6px; border-radius: 4px; }
         
-        .img-catalogo-container {
+        .img-producto-container {
             width: 100%;
-            height: 180px;
+            height: 120px;
             background-color: #26140e;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             border: 1px solid #523124;
         }
-        .img-catalogo {
+        .img-producto {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
         }
-
-        /* Carrito de compras flotante en la esquina inferior */
-        #carrito-flotante {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            left: 15px;
-            max-width: 380px;
-            margin-left: auto;
-            max-height: 400px;
-            background-color: rgba(59, 34, 25, 0.96);
-            border: 2px solid #d4af37;
-            border-radius: 12px;
-            padding: 15px;
-            display: none;
-            z-index: 1050;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.9);
-            overflow-y: auto;
+        .copiable {
+            cursor: pointer;
+            transition: color 0.2s;
         }
-
-        /* Estilos para el modal emergente de aviso (regla de las 12 horas) */
-        .custom-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-        .custom-modal-box {
-            background-color: #3b2219;
-            border: 2px solid #d4af37;
-            border-radius: 14px;
-            padding: 25px;
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-
-        @media (max-width: 768px) {
-            body { padding: 12px; }
-            .card-cafe { padding: 12px !important; }
-            .img-catalogo-container { height: 130px; }
+        .copiable:hover {
+            color: #e5c158 !important;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Barra superior con información del cliente conectado -->
+    <div class="container py-3">
+        <!-- Barra superior del cliente -->
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
-                <span class="text-dorado fw-bold">Cliente: {{ session.get('cliente_nombre') }}</span>
+                <h3 class="fw-bold text-dorado m-0">☕ Café-Casa Antigua - Catálogo</h3>
+                <p class="text-claro-sub m-0" style="font-size: 0.9rem;">Bienvenido, <strong class="text-white">{{ session.get('cliente_nombre') }}</strong></p>
             </div>
             <div class="d-flex gap-2">
-                <a href="/cliente-logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+                <button type="button" class="btn btn-outline-warning btn-sm position-relative" data-bs-toggle="modal" data-bs-target="#modalCarrito" style="color: #d4af37; border-color: #d4af37;">
+                    🛒 Carrito <span id="contador-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                </button>
+                <a href="/cliente-logout" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
 
-        <div class="text-center mb-4">
-            <h1 class="text-dorado fw-bold">Menú en Línea</h1>
-            <p class="text-light opacity-75" style="font-size: 0.85rem;">Explora los productos y artículos en tiempo real.</p>
+        <!-- Buscador del catálogo -->
+        <div class="card-cafe p-3 mb-4">
+            <form method="GET" action="/catalogo" class="input-group">
+                <input type="text" class="form-control" name="q" value="{{ busqueda }}" placeholder="Busca tu café o postre favorito...">
+                <button class="btn btn-dorado ms-2" type="submit">Buscar</button>
+                {% if busqueda %}
+                <a href="/catalogo" class="btn btn-outline-secondary ms-2 text-white">Limpiar</a>
+                {% endif %}
+            </form>
         </div>
 
-        <!-- Buscador flotante para filtrar productos del catálogo al instante -->
-        <div style="position: sticky; top: 10px; z-index: 1020; background: transparent; padding-bottom: 10px; padding-top: 5px;">
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-6">
-                    <form method="GET" action="/catalogo" class="input-group card-cafe p-2" onsubmit="return false;">
-                        <input type="text" class="form-control" name="q" id="buscador-catalogo" value="{{ busqueda }}" placeholder="🔍 Buscar productos...">
-                        <button class="btn btn-dorado ms-2" type="button" style="font-size: 0.85rem;">Buscar</button>
-                        {% if busqueda %}
-                        <a href="/catalogo" class="btn btn-outline-secondary ms-2 text-white btn-sm">Limpiar</a>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contenedor dinámico de productos traídos de la base de datos -->
-        <div class="row g-3 mt-1" id="contenedor-productos">
+        <!-- Productos disponibles -->
+        <div class="row g-3">
             {% for prod in productos %}
-            <div class="col-6 col-md-4 producto-item" data-nombre="{{ prod.nombre|lower }}" data-categoria="{{ prod.categoria|lower }}">
-                <div class="card-cafe p-2 h-100 d-flex flex-column justify-content-between">
+            <div class="col-md-4 col-lg-3">
+                <div class="card-cafe p-3 h-100 d-flex flex-column justify-content-between">
                     <div>
-                        <div class="img-catalogo-container" style="height: 110px;">
-                            <img src="{{ prod.imagen }}" class="img-catalogo" alt="{{ prod.nombre }}">
+                        <div class="img-producto-container">
+                            <img src="{{ prod.imagen }}" class="img-producto" alt="{{ prod.nombre }}">
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="badge-stock" style="font-size: 0.6rem; padding: 2px 4px;">{{ prod.categoria }}</span>
-                            <!-- Etiqueta condicional para el stock -->
-                            <span class="badge {% if prod.stock <= 5 %}bg-danger{% elif prod.stock <= 15 %}bg-warning text-dark{% else %}bg-success{% endif %}" style="font-size: 0.6rem;">
-                                Stock: {{ prod.stock }}
-                            </span>
-                        </div>
-                        <h6 class="fw-bold mb-1" style="font-size: 0.85rem; line-height: 1.2;">{{ prod.nombre }}</h6>
-                        <h5 class="text-dorado mb-2" style="font-size: 0.95rem;">${{ "%.2f"|format(prod.precio) }}</h5>
+                        <span class="badge-categoria">{{ prod.categoria }}</span>
+                        <h5 class="fw-bold mt-2 mb-1">{{ prod.nombre }}</h5>
+                        <h4 class="text-dorado mb-1">${{ "%.2f"|format(prod.precio) }}</h4>
+                        <p class="text-claro-sub mb-3" style="font-size: 0.8rem;">Disponibles: {{ prod.stock }}</p>
                     </div>
-                    
                     <div>
-                        <div class="d-flex align-items-center gap-1 mb-1">
-                            <label class="text-light m-0" style="font-size: 0.7rem;">Cant:</label>
-                            <input type="number" id="input-cant-{{ prod.id }}" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center p-1" style="font-size: 0.75rem; height: 28px;">
+                        {% if prod.stock > 0 %}
+                        <div class="input-group input-group-sm mb-2">
+                            <input type="number" id="cant_{{ prod.id }}" value="1" min="1" max="{{ prod.stock }}" class="form-control text-center">
+                            <button class="btn btn-dorado" type="button" onclick="agregarAlCarrito({{ prod.id }}, '{{ prod.nombre }}', {{ prod.precio }}, {{ prod.stock }})">Añadir</button>
                         </div>
-                        <!-- Botón para agregar al carrito con atributos data-* para JavaScript -->
-                        <button class="btn btn-dorado w-100 agregar-carrito py-1" style="font-size: 0.75rem;"
-                                data-nombre="{{ prod.nombre }}" 
-                                data-precio="{{ prod.precio }}" 
-                                data-categoria="{{ prod.categoria }}"
-                                data-stock="{{ prod.stock }}"
-                                data-inputid="input-cant-{{ prod.id }}">
-                            🛒 Agregar
-                        </button>
+                        {% else %}
+                        <button class="btn btn-secondary btn-sm w-100 mb-2" disabled>Agotado</button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
             {% else %}
-            <div class="col-12 text-center text-muted">
-                <p>No hay productos disponibles.</p>
+            <div class="col-12">
+                <p class="text-center text-muted">No se encontraron productos disponibles.</p>
             </div>
             {% endfor %}
         </div>
-        
-        <footer class="text-center mt-4 text-light opacity-50" style="font-size: 0.75rem;">
-            © 2026 Café-Casa Antigua.
-        </footer>
     </div>
 
-    <!-- Componente flotante del carrito de compras -->
-    <div id="carrito-flotante">
-        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2 border-secondary">
-            <h6 class="text-dorado m-0 fw-bold">🛒 Tu Carrito</h6>
-            <div class="d-flex gap-1">
-                <button class="btn btn-outline-warning btn-sm py-0 px-1" style="font-size: 0.7rem;" onclick="toggleMinimizarCarrito()">Minimizar</button>
-                <button class="btn-close btn-close-white btn-sm" onclick="cerrarCarrito()"></button>
-            </div>
-        </div>
-        <div id="contenido-carrito-movil">
-            <ul id="lista-carrito" class="list-unstyled mb-2" style="font-size: 0.8rem;">
-            </ul>
-            <div class="border-top pt-1 border-secondary mb-2">
-                <div class="d-flex justify-content-between fw-bold" style="font-size: 0.85rem;">
-                    <span>Total:</span>
-                    <span id="total-carrito" class="text-success">$0.00</span>
+    <!-- Modal del Carrito de Compras -->
+    <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-dorado fw-bold">🛒 Tu Carrito de Compras</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="lista-carrito-items" class="d-flex flex-column gap-2 mb-3" style="max-height: 250px; overflow-y: auto;">
+                        <p class="text-muted text-center m-0">El carrito está vacío.</p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
+                        <span class="fw-bold">Total a Pagar:</span>
+                        <h4 class="text-success fw-bold m-0" id="carrito-total-txt">$0.00</h4>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary py-2">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Seguir Comprando</button>
+                    <button type="button" class="btn btn-dorado btn-sm" onclick="abrirModalPago()" id="btn-procesar-compra" disabled>Comprar por WhatsApp</button>
                 </div>
             </div>
-            <button class="btn btn-success w-100 fw-bold py-1" style="background-color: #25d366; border: none; font-size: 0.8rem;" onclick="procesarPedidoServidor()">
-                📲 Comprar por WhatsApp
-            </button>
         </div>
     </div>
 
-    <!-- Modal de advertencia sobre la vigencia de 12 horas del pedido -->
-    <div id="modalAviso12Horas" class="custom-modal-overlay">
-        <div class="custom-modal-box">
-            <div class="fs-1 mb-2">⏰</div>
-            <h4 class="text-dorado fw-bold mb-3">¡Aviso Importante!</h4>
-            <p class="text-light mb-4" style="font-size: 0.95rem; line-height: 1.5;">
-                Tiene <strong>12 horas</strong> para retirar su pedido en nuestro local una vez enviado el mensaje. De lo contrario, el pedido será cancelado.
-            </p>
-            <div class="d-flex gap-2">
-                <button class="btn btn-outline-secondary w-50 py-2 text-white" onclick="cerrarModalAviso()">Cancelar</button>
-                <button class="btn btn-dorado w-50 py-2" onclick="procederWhatsApp()">Continuar</button>
+    <!-- Modal Intermedio de Datos Bancarios y Comprobante (Solicitud del Cliente) -->
+    <div class="modal fade" id="modalDatosPago" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
+                <div class="modal-header border-bottom border-secondary">
+                    <h5 class="modal-title text-dorado fw-bold">🏦 Datos de Pago Bancario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="font-size: 0.9rem;">
+                    <p class="text-claro-sub mb-2">Haz clic sobre cualquier dato para copiarlo al portapapeles:</p>
+                    
+                    <div class="p-3 rounded mb-3" style="background-color: #2e1b14; border: 1px solid #523124;">
+                        <div class="mb-2">
+                            <span class="text-warning fw-bold">Banco:</span> 
+                            <span class="text-white copiable" onclick="copiarTexto('Banco de Venezuela')">Banco de Venezuela (0102)</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-warning fw-bold">Teléfono Pago Móvil:</span> 
+                            <span class="text-white copiable" onclick="copiarTexto('04121234567')">0412-1234567</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-warning fw-bold">Cédula / RIF:</span> 
+                            <span class="text-white copiable" onclick="copiarTexto('V12345678')">V-12.345.678</span>
+                        </div>
+                        <div>
+                            <span class="text-warning fw-bold">Tipo de Moneda:</span> 
+                            <span class="text-info fw-bold">Pago Móvil (Bolívares - Bs) a Tasa BCV</span>
+                        </div>
+                    </div>
+
+                    <form id="form-comprobante">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">¿Cómo desea enviar su comprobante?</label>
+                            <select class="form-select form-select-sm" id="tipo-envio-comprobante" onchange="cambiarMetodoEnvio()" required>
+                                <option value="foto">En foto (vía WhatsApp)</option>
+                                <option value="referencia">Ingresar número de referencia</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3" id="bloque-referencia" style="display: none;">
+                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Número de Referencia Bancaria:</label>
+                            <input type="text" class="form-control form-control-sm" id="input-referencia" placeholder="Ej. 458921">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">Adjuntar captura del pago (Obligatorio):</label>
+                            <input type="file" class="form-control form-control-sm" id="input-archivo-pago" accept="image/*" required>
+                            <div class="form-text text-light opacity-75" style="font-size: 0.75rem;">Sube la imagen del pago desde tu teléfono o PC.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top border-secondary py-2">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Regresar</button>
+                    <button type="button" class="btn btn-dorado btn-sm fw-bold" onclick="finalizarPedidoWhatsApp()">Confirmar y Enviar a WhatsApp</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Lógica en JavaScript para el buscador, carrito y pasarela de WhatsApp -->
+    <!-- Script de Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const buscador = document.getElementById('buscador-catalogo');
-        if (buscador) {
-            buscador.addEventListener('input', function() {
-                const valor = this.value.toLowerCase().trim();
-                const items = document.querySelectorAll('.producto-item');
-                
-                items.forEach(item => {
-                    const nombre = item.getAttribute('data-nombre');
-                    const categoria = item.getAttribute('data-categoria');
-                    
-                    if (nombre.includes(valor) || categoria.includes(valor)) {
-                        item.style.display = '';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        }
-
         let carrito = [];
 
-        document.querySelectorAll('.agregar-carrito').forEach(button => {
-            button.addEventListener('click', () => {
-                const nombre = button.dataset.nombre;
-                const precio = parseFloat(button.dataset.precio);
-                const categoria = button.dataset.categoria;
-                const stockMax = parseInt(button.dataset.stock);
-                
-                const inputId = button.dataset.inputid;
-                const inputCantidad = document.getElementById(inputId);
-                let cantidadDeseada = parseInt(inputCantidad.value);
+        function agregarAlCarrito(id, nombre, precio, stockMax) {
+            const inputCant = document.getElementById(`cant_${id}`);
+            const cantidad = parseInt(inputCant.value);
 
-                if (isNaN(cantidadDeseada) || cantidadDeseada < 1) {
-                    cantidadDeseada = 1;
-                }
-
-                const index = carrito.findIndex(item => item.nombre === nombre);
-                if (index !== -1) {
-                    let nuevaCantidad = carrito[index].cantidad + cantidadDeseada;
-                    if (nuevaCantidad > stockMax) {
-                        alert(`Lo sentimos, excede el stock disponible (${stockMax}).`);
-                        nuevaCantidad = stockMax;
-                    }
-                    carrito[index].cantidad = nuevaCantidad;
-                } else {
-                    if (cantidadDeseada > stockMax) {
-                        alert(`Supera el stock disponible (${stockMax}).`);
-                        cantidadDeseada = stockMax;
-                    }
-                    carrito.push({ nombre, precio, categoria, cantidad: cantidadDeseada });
-                }
-
-                document.getElementById('carrito-flotante').style.display = 'block';
-                actualizarCarritoUI();
-            });
-        });
-
-        function actualizarCarritoUI() {
-            const lista = document.getElementById('lista-carrito');
-            const totalSpan = document.getElementById('total-carrito');
-            lista.innerHTML = '';
-            let totalGeneral = 0;
-
-            if (carrito.length === 0) {
-                lista.innerHTML = '<li class="text-muted text-center py-1">Vacío.</li>';
-                totalSpan.textContent = '$0.00';
+            if (cantidad <= 0 || cantidad > stockMax) {
+                alert("Cantidad inválida o supera el stock disponible.");
                 return;
             }
 
-            carrito.forEach((item, index) => {
-                let subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
+            const index = carrito.findIndex(item => item.id === id);
+            if (index !== -1) {
+                carrito[index].cantidad += cantidad;
+                if (carrito[index].cantidad > stockMax) {
+                    carrito[index].cantidad = stockMax;
+                }
+            } else {
+                carrito.push({ id, nombre, precio, cantidad });
+            }
 
-                lista.innerHTML += `
-                    <li class="mb-1 p-1 rounded" style="background-color: #26140e; border: 1px solid #523124;">
-                        <div class="d-flex justify-content-between fw-bold" style="font-size: 0.75rem;">
-                            <span>${item.nombre} (x${item.cantidad})</span>
-                            <span class="text-dorado">$${subtotal.toFixed(2)}</span>
+            actualizarCarritoUI();
+            alert(`¡${nombre} agregado al carrito!`);
+        }
+
+        function actualizarCarritoUI() {
+            const listaContainer = document.getElementById('lista-carrito-items');
+            const contadorBadge = document.getElementById('contador-carrito');
+            const totalTxt = document.getElementById('carrito-total-txt');
+            const btnProcesar = document.getElementById('btn-procesar-compra');
+
+            contadorBadge.innerText = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+
+            if (carrito.length === 0) {
+                listaContainer.innerHTML = `<p class="text-muted text-center m-0">El carrito está vacío.</p>`;
+                totalTxt.innerText = "$0.00";
+                btnProcesar.disabled = true;
+                return;
+            }
+
+            let html = "";
+            let total = 0;
+            carrito.forEach((item, index) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                html += `
+                    <div class="p-2 rounded d-flex justify-content-between align-items-center" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
+                        <div>
+                            <div class="fw-bold text-white">${item.nombre}</div>
+                            <div class="text-claro-sub">Cant: ${item.cantidad} x $${item.precio.toFixed(2)}</div>
                         </div>
-                        <div class="text-end">
-                            <button class="btn btn-outline-danger btn-sm py-0 px-1" style="font-size: 0.6rem;" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-success fw-bold">$${subtotal.toFixed(2)}</span>
+                            <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="eliminarDelCarrito(${index})" style="font-size: 0.7rem;">✕</button>
                         </div>
-                    </li>
+                    </div>
                 `;
             });
 
-            totalSpan.textContent = `$${totalGeneral.toFixed(2)}`;
+            listaContainer.innerHTML = html;
+            totalTxt.innerText = `$${total.toFixed(2)}`;
+            btnProcesar.disabled = false;
         }
 
         function eliminarDelCarrito(index) {
             carrito.splice(index, 1);
             actualizarCarritoUI();
-            if (carrito.length === 0) {
-                document.getElementById('carrito-flotante').style.display = 'none';
-            }
         }
 
-        function cerrarCarrito() {
-            document.getElementById('carrito-flotante').style.display = 'none';
+        function copiarTexto(texto) {
+            navigator.clipboard.writeText(texto).then(() => {
+                alert(`¡Copiado al portapapeles: ${texto}`);
+            }).catch(err => {
+                console.error('Error al copiar: ', err);
+            });
         }
 
-        function toggleMinimizarCarrito() {
-            const contenido = document.getElementById('contenido-carrito-movil');
-            if (contenido.style.display === 'none') {
-                contenido.style.display = 'block';
+        function abrirModalPago() {
+            // Cerramos modal carrito y abrimos el modal de datos bancarios
+            const modalCarritoEl = document.getElementById('modalCarrito');
+            const modalCarritoObj = bootstrap.Modal.getInstance(modalCarritoEl);
+            modalCarritoObj.hide();
+
+            const modalPagoEl = new bootstrap.Modal(document.getElementById('modalDatosPago'));
+            modalPagoEl.show();
+        }
+
+        function cambiarMetodoEnvio() {
+            const metodo = document.getElementById('tipo-envio-comprobante').value;
+            const bloqueRef = document.getElementById('bloque-referencia');
+            if (metodo === 'referencia') {
+                bloqueRef.style.display = 'block';
             } else {
-                contenido.style.display = 'none';
+                bloqueRef.style.display = 'none';
             }
         }
 
-        function procesarPedidoServidor() {
-            if (carrito.length === 0) return;
+        async function finalizarPedidoWhatsApp() {
+            const archivoInput = document.getElementById('input-archivo-pago');
+            if (!archivoInput.files || archivoInput.files.length === 0) {
+                alert("Debe adjuntar la captura del pago obligatoriamente.");
+                return;
+            }
 
-            // Envía los datos mediante fetch al backend para registrar el pedido en la BD
-            fetch('/hacer-pedido', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: carrito })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('modalAviso12Horas').style.display = 'flex';
-                } else {
-                    alert("Error al registrar el pedido.");
+            const metodoEnvio = document.getElementById('tipo-envio-comprobante').value;
+            const referencia = document.getElementById('input-referencia').value.trim();
+
+            if (metodoEnvio === 'referencia' && !referencia) {
+                alert("Por favor ingrese el número de referencia bancaria.");
+                return;
+            }
+
+            // 1. Registramos el pedido en el backend vía Fetch
+            try {
+                const response = await fetch('/hacer-pedido', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: carrito })
+                });
+                const resultado = await response.json();
+
+                if (!resultado.success) {
+                    alert("Error al registrar el pedido: " + (resultado.error || "Desconocido"));
+                    return;
                 }
-            });
-        }
+            } catch (e) {
+                console.error(e);
+            }
 
-        function cerrarModalAviso() {
-            document.getElementById('modalAviso12Horas').style.display = 'none';
-        }
-
-        function procederWhatsApp() {
-            cerrarModalAviso();
-            const telefono = "+584260339440"; 
-
-            let mensaje = "Hola, deseo confirmar mi pedido:%0A%0A";
+            // 2. Construimos el mensaje de WhatsApp
+            let detalleTexto = "";
             let totalGeneral = 0;
-
             carrito.forEach(item => {
-                let subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
-                mensaje += `▪️ *${item.nombre} (Cant: ${item.cantidad}) - Subtotal: $${subtotal.toFixed(2)}%0A`;
+                let sub = item.precio * item.cantidad;
+                totalGeneral += sub;
+                detalleTexto += `• ${item.nombre} (x${item.cantidad}) - $${sub.toFixed(2)}%0A`;
             });
 
-            mensaje += `%0A💰 *Total: $${totalGeneral.toFixed(2)}*`;
-            mensaje += `%0A%0A⏱️ *(Nota: Entiendo que tengo 12 horas para retirar mi pedido)*`;
+            let infoComprobante = metodoEnvio === 'referencia' ? `Ref. Bancaria: ${referencia}` : `Comprobante enviado en foto`;
 
-            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
+            let mensaje = `¡Hola! Café-Casa Antigua ☕, deseo confirmar mi pedido:%0A%0A` +
+                          `${detalleTexto}%0A` +
+                          `*Total a Pagar:* $${totalGeneral.toFixed(2)}%0A` +
+                          `*Método:* Pago Móvil (Bs)%0A` +
+                          `*Comprobante:* ${infoComprobante}%0A%0A` +
+                          `_Nota: Recuerde que tiene 12 horas para retirar y abonar su pedido en el establecimiento._`;
+
+            // Cerramos modal de pago
+            const modalPagoEl = document.getElementById('modalDatosPago');
+            const modalPagoObj = bootstrap.Modal.getInstance(modalPagoEl);
+            modalPagoObj.hide();
+
+            // Limpiamos carrito
+            carrito = [];
+            actualizarCarritoUI();
+
+            // Abrimos WhatsApp con el mensaje
+            const numeroWhatsApp = "584121234567"; // Reemplaza con tu número de WhatsApp de la cafetería
+            window.open(`https://wa.me/${numeroWhatsApp}?text=${mensaje}`, '_blank');
         }
     </script>
 </body>
