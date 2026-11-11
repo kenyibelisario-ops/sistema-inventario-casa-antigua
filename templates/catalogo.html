@@ -81,7 +81,7 @@
     </style>
 </head>
 <body>
-    <!-- Botón Flotante del Carrito (Tipo Notificación con movimiento fijo en pantalla) -->
+    <!-- Botón Flotante del Carrito (Tipo Notificación) -->
     <button type="button" class="carrito-flotante shadow-lg" data-bs-toggle="modal" data-bs-target="#modalCarrito">
         🛒 Carrito <span id="contador-carrito" class="badge bg-danger rounded-pill">0</span>
     </button>
@@ -172,72 +172,88 @@
         </div>
     </div>
 
-    <!-- Modal Intermedio de Datos Bancarios (Ventana Flotante con Totales en COP y Bs) -->
+    <!-- Modal de Métodos de Pago y Liquidación de Pedido -->
     <div class="modal fade" id="modalDatosPago" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
                 <div class="modal-header border-bottom border-secondary">
-                    <h5 class="modal-title text-dorado fw-bold">🏦 Datos de Pago Bancario</h5>
+                    <h5 class="modal-title text-dorado fw-bold">💳 Selección de Método de Pago</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" style="font-size: 0.9rem;">
-                    <p class="text-claro-sub mb-2">Haz clic sobre cualquier dato para copiarlo al portapapeles:</p>
-                    
-                    <div class="p-3 rounded mb-3" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <div class="mb-2">
-                            <span class="text-warning fw-bold">Banco:</span> 
-                            <span class="text-white copiable" onclick="copiarTexto('Banco de Venezuela')">Banco de Venezuela (0102)</span>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-warning fw-bold">Teléfono Pago Móvil:</span> 
-                            <span class="text-white copiable" onclick="copiarTexto('04266759026')">0426-6759026</span>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-warning fw-bold">Cédula / RIF:</span> 
-                            <span class="text-white copiable" onclick="copiarTexto('30792567')">30792567</span>
-                        </div>
-                        
-                        <!-- Totales exactos requeridos (COP y Bolívares automáticos) -->
-                        <div class="row g-2 mt-3">
-                            <div class="col-6">
-                                <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
-                                    <span class="text-light d-block" style="font-size: 0.75rem;">Total en COP:</span>
-                                    <h5 class="text-success fw-bold m-0" id="modal-total-cop">$0 COP</h5>
-                                </div>
+                    <!-- Resumen de Totales -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
+                                <span class="text-light d-block" style="font-size: 0.75rem;">Total a Pagar (COP):</span>
+                                <h5 class="text-success fw-bold m-0" id="modal-total-cop">$0 COP</h5>
                             </div>
-                            <div class="col-6">
-                                <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
-                                    <span class="text-light d-block" style="font-size: 0.75rem;">Total en Bolívares:</span>
-                                    <h5 class="text-warning fw-bold m-0" id="modal-total-bs">Bs. 0.00</h5>
-                                </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 rounded text-center h-100" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
+                                <span class="text-light d-block" style="font-size: 0.75rem;">Total Equivalente (Bs):</span>
+                                <h5 class="text-warning fw-bold m-0" id="modal-total-bs">Bs. 0.00</h5>
                             </div>
                         </div>
                     </div>
 
-                    <form id="form-comprobante">
+                    <!-- Selector de Forma de Pago -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">Seleccione su método de liquidación:</label>
+                        <select class="form-select form-select-sm" id="select-metodo-pago" onchange="cambiarMetodoPago()">
+                            <option value="pagomovil">Pago Móvil (Bolívares - Bs)</option>
+                            <option value="efectivo">Efectivo en Pesos (COP) en el Establecimiento</option>
+                        </select>
+                    </div>
+
+                    <!-- Contenedor exclusivo para Pago Móvil -->
+                    <div id="seccion-pagomovil">
+                        <div class="p-3 rounded mb-3" style="background-color: #2e1b14; border: 1px solid #523124;">
+                            <p class="text-claro-sub mb-2" style="font-size: 0.8rem;">Coordenadas bancarias (Haga clic para copiar):</p>
+                            <div class="mb-2">
+                                <span class="text-warning fw-bold">Banco:</span> 
+                                <span class="text-white copiable" onclick="copiarTexto('Banco de Venezuela')">Banco de Venezuela (0102)</span>
+                            </div>
+                            <div class="mb-2">
+                                <span class="text-warning fw-bold">Teléfono:</span> 
+                                <span class="text-white copiable" onclick="copiarTexto('04266759026')">0426-6759026</span>
+                            </div>
+                            <div>
+                                <span class="text-warning fw-bold">Cédula / RIF:</span> 
+                                <span class="text-white copiable" onclick="copiarTexto('30792567')">30792567</span>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">¿Cómo desea enviar su comprobante?</label>
-                            <select class="form-select form-select-sm" id="tipo-envio-comprobante" onchange="cambiarMetodoEnvio()" required>
-                                <option value="foto">En foto (vía WhatsApp)</option>
-                                <option value="referencia">Ingresar número de referencia</option>
+                            <select class="form-select form-select-sm" id="tipo-envio-comprobante" onchange="cambiarEnvioComprobante()">
+                                <option value="foto">En formato de imagen (vía WhatsApp)</option>
+                                <option value="referencia">Ingresar número de referencia bancaria</option>
                             </select>
                         </div>
 
                         <div class="mb-3" id="bloque-referencia" style="display: none;">
-                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Número de Referencia Bancaria:</label>
+                            <label class="form-label fw-bold" style="font-size: 0.85rem;">Número de Referencia:</label>
                             <input type="text" class="form-control form-control-sm" id="input-referencia" placeholder="Ej. 458921">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">Adjuntar captura del pago (Obligatorio):</label>
-                            <input type="file" class="form-control form-control-sm" id="input-archivo-pago" accept="image/*" required>
-                            <div class="form-text text-light opacity-75" style="font-size: 0.75rem;">Sube la imagen del pago desde tu teléfono o PC.</div>
+                            <label class="form-label fw-bold text-warning" style="font-size: 0.85rem;">Adjuntar comprobante de pago (Obligatorio para Pago Móvil):</label>
+                            <input type="file" class="form-control form-control-sm" id="input-archivo-pago" accept="image/*">
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Contenedor exclusivo para Pago en Efectivo -->
+                    <div id="seccion-efectivo" style="display: none;">
+                        <div class="p-3 rounded mb-3 text-center" style="background-color: #2e1b14; border: 1px solid #d4af37;">
+                            <h6 class="text-warning fw-bold mb-1">💵 Pago en Efectivo (Pesos Colombianos)</h6>
+                            <p class="text-light m-0" style="font-size: 0.85rem;">Su pedido quedará registrado en el sistema bajo la modalidad de pago presencial. Deberá consignar el monto exacto en efectivo al retirar su orden en el establecimiento dentro del lapso reglamentario de 12 horas.</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer border-top border-secondary py-2">
                     <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Regresar</button>
-                    <button type="button" class="btn btn-dorado btn-sm fw-bold" onclick="finalizarPedidoWhatsApp()">Confirmar y Enviar a WhatsApp</button>
+                    <button type="button" class="btn btn-dorado btn-sm fw-bold" onclick="finalizarPedidoWhatsApp()">Transmitir Pedido vía WhatsApp</button>
                 </div>
             </div>
         </div>
@@ -270,7 +286,7 @@
             }
 
             actualizarCarritoUI();
-            alert(`¡${nombre} agregado al carrito!`);
+            // Se eliminó la alerta emergente intrusiva (alert) para agilizar la experiencia del usuario.
         }
 
         function actualizarCarritoUI() {
@@ -311,7 +327,7 @@
             });
 
             totalCOPGlobal = total;
-            const totalBsCalculado = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2); // Ajusta si la conversión es tasa directa o factor multiplicador según tu lógica de moneda
+            const totalBsCalculado = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2);
 
             listaContainer.innerHTML = html;
             totalCopTxt.innerText = `$${totalCOPGlobal.toLocaleString()} COP`;
@@ -337,16 +353,33 @@
             const modalCarritoObj = bootstrap.Modal.getInstance(modalCarritoEl);
             modalCarritoObj.hide();
 
-            // Rellenar montos automáticos en el modal de pago
             document.getElementById('modal-total-cop').innerText = `$${totalCOPGlobal.toLocaleString()} COP`;
             const totalBsCalculado = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2);
             document.getElementById('modal-total-bs').innerText = `Bs. ${totalBsCalculado}`;
+
+            // Resetear a pago móvil por defecto
+            document.getElementById('select-metodo-pago').value = 'pagomovil';
+            cambiarMetodoPago();
 
             const modalPagoEl = new bootstrap.Modal(document.getElementById('modalDatosPago'));
             modalPagoEl.show();
         }
 
-        function cambiarMetodoEnvio() {
+        function cambiarMetodoPago() {
+            const metodo = document.getElementById('select-metodo-pago').value;
+            const seccionPagoMovil = document.getElementById('seccion-pagomovil');
+            const seccionEfectivo = document.getElementById('seccion-efectivo');
+
+            if (metodo === 'efectivo') {
+                seccionPagoMovil.style.display = 'none';
+                seccionEfectivo.style.display = 'block';
+            } else {
+                seccionPagoMovil.style.display = 'block';
+                seccionEfectivo.style.display = 'none';
+            }
+        }
+
+        function cambiarEnvioComprobante() {
             const metodo = document.getElementById('tipo-envio-comprobante').value;
             const bloqueRef = document.getElementById('bloque-referencia');
             if (metodo === 'referencia') {
@@ -357,18 +390,27 @@
         }
 
         async function finalizarPedidoWhatsApp() {
-            const archivoInput = document.getElementById('input-archivo-pago');
-            if (!archivoInput.files || archivoInput.files.length === 0) {
-                alert("Debe adjuntar la captura del pago obligatoriamente.");
-                return;
-            }
+            const metodoPago = document.getElementById('select-metodo-pago').value;
+            let infoComprobante = "";
 
-            const metodoEnvio = document.getElementById('tipo-envio-comprobante').value;
-            const referencia = document.getElementById('input-referencia').value.trim();
+            if (metodoPago === 'pagomovil') {
+                const archivoInput = document.getElementById('input-archivo-pago');
+                if (!archivoInput.files || archivoInput.files.length === 0) {
+                    alert("Debe adjuntar la captura del pago obligatoriamente para transferencias por Pago Móvil.");
+                    return;
+                }
 
-            if (metodoEnvio === 'referencia' && !referencia) {
-                alert("Por favor ingrese el número de referencia bancaria.");
-                return;
+                const tipoEnvio = document.getElementById('tipo-envio-comprobante').value;
+                const referencia = document.getElementById('input-referencia').value.trim();
+
+                if (tipoEnvio === 'referencia' && !referencia) {
+                    alert("Por favor ingrese el número de referencia bancaria.");
+                    return;
+                }
+
+                infoComprobante = tipoEnvio === 'referencia' ? `Ref. Bancaria: ${referencia}` : `Comprobante adjuntado en formato digital`;
+            } else {
+                infoComprobante = "Pago en efectivo en Pesos (COP) directo en el establecimiento";
             }
 
             try {
@@ -394,15 +436,13 @@
             });
 
             const montoBs = (totalCOPGlobal / TASA_BCV_FIJA).toFixed(2);
-            let infoComprobante = metodoEnvio === 'referencia' ? `Ref. Bancaria: ${referencia}` : `Comprobante enviado en foto`;
 
             let mensaje = `¡Hola! Café-Casa Antigua ☕, deseo confirmar mi pedido:%0A%0A` +
                           `${detalleTexto}%0A` +
                           `*Total COP:* $${totalCOPGlobal.toLocaleString()} COP%0A` +
                           `*Total Bs:* Bs. ${montoBs}%0A` +
-                          `*Método:* Pago Móvil (Bs)%0A` +
-                          `*Comprobante:* ${infoComprobante}%0A%0A` +
-                          `_Nota: Recuerde que tiene 12 horas para retirar y abonar su pedido en el establecimiento._`;
+                          `*Modalidad de Pago:* ${infoComprobante}%0A%0A` +
+                          `_Nota: Recuerde que dispone de 12 horas para gestionar su retiro u homologación en el local._`;
 
             const modalPagoEl = document.getElementById('modalDatosPago');
             const modalPagoObj = bootstrap.Modal.getInstance(modalPagoEl);
