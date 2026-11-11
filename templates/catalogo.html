@@ -131,7 +131,7 @@
                         <p class="text-muted text-center m-0">El carrito está vacío.</p>
                     </div>
                     <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
-                        <span class="fw-bold">Total a Pagar:</span>
+                        <span class="fw-bold">Total a Pagar (USD):</span>
                         <h4 class="text-success fw-bold m-0" id="carrito-total-txt">$0.00</h4>
                     </div>
                 </div>
@@ -143,7 +143,7 @@
         </div>
     </div>
 
-    <!-- Modal Intermedio de Datos Bancarios y Comprobante (Solicitud del Cliente) -->
+    <!-- Modal Intermedio de Datos Bancarios y Conversión a Bolívares -->
     <div class="modal fade" id="modalDatosPago" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
@@ -161,15 +161,19 @@
                         </div>
                         <div class="mb-2">
                             <span class="text-warning fw-bold">Teléfono Pago Móvil:</span> 
-                            <span class="text-white copiable" onclick="copiarTexto('04121234567')">0412-1234567</span>
+                            <span class="text-white copiable" onclick="copiarTexto('04266759026')">0426-6759026</span>
                         </div>
                         <div class="mb-2">
                             <span class="text-warning fw-bold">Cédula / RIF:</span> 
-                            <span class="text-white copiable" onclick="copiarTexto('V12345678')">V-12.345.678</span>
+                            <span class="text-white copiable" onclick="copiarTexto('30792567')">30792567</span>
                         </div>
-                        <div>
-                            <span class="text-warning fw-bold">Tipo de Moneda:</span> 
-                            <span class="text-info fw-bold">Pago Móvil (Bolívares - Bs) a Tasa BCV</span>
+                        <div class="mb-2">
+                            <label class="text-warning fw-bold d-block mb-1">Tasa BCV (Bs por 1 USD):</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="input-tasa-bcv" value="36.50" oninput="calcularBolivares()">
+                        </div>
+                        <div class="p-2 rounded text-center" style="background-color: #1a0f0a; border: 1px solid #d4af37;">
+                            <span class="text-light d-block" style="font-size: 0.8rem;">Monto Total en Bolívares (Bs):</span>
+                            <h4 class="text-success fw-bold m-0" id="monto-total-bs">Bs. 0.00</h4>
                         </div>
                     </div>
 
@@ -206,6 +210,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let carrito = [];
+        let totalUSDGlobal = 0;
 
         function agregarAlCarrito(id, nombre, precio, stockMax) {
             const inputCant = document.getElementById(`cant_${id}`);
@@ -241,6 +246,7 @@
             if (carrito.length === 0) {
                 listaContainer.innerHTML = `<p class="text-muted text-center m-0">El carrito está vacío.</p>`;
                 totalTxt.innerText = "$0.00";
+                totalUSDGlobal = 0;
                 btnProcesar.disabled = true;
                 return;
             }
@@ -248,7 +254,7 @@
             let html = "";
             let total = 0;
             carrito.forEach((item, index) => {
-                const subtotal = item.precio * item.cantidad;
+                let subtotal = item.precio * item.cantidad;
                 total += subtotal;
                 html += `
                     <div class="p-2 rounded d-flex justify-content-between align-items-center" style="background-color: #2e1b14; border: 1px solid #523124; font-size: 0.85rem;">
@@ -266,6 +272,7 @@
 
             listaContainer.innerHTML = html;
             totalTxt.innerText = `$${total.toFixed(2)}`;
+            totalUSDGlobal = total;
             btnProcesar.disabled = false;
         }
 
@@ -282,11 +289,18 @@
             });
         }
 
+        function calcularBolivares() {
+            const tasa = parseFloat(document.getElementById('input-tasa-bcv').value) || 0;
+            const totalBs = totalUSDGlobal * tasa;
+            document.getElementById('monto-total-bs').innerText = `Bs. ${totalBs.toFixed(2)}`;
+        }
+
         function abrirModalPago() {
-            // Cerramos modal carrito y abrimos el modal de datos bancarios
             const modalCarritoEl = document.getElementById('modalCarrito');
             const modalCarritoObj = bootstrap.Modal.getInstance(modalCarritoEl);
             modalCarritoObj.hide();
+
+            calcularBolivares();
 
             const modalPagoEl = new bootstrap.Modal(document.getElementById('modalDatosPago'));
             modalPagoEl.show();
@@ -317,7 +331,6 @@
                 return;
             }
 
-            // 1. Registramos el pedido en el backend vía Fetch
             try {
                 const response = await fetch('/hacer-pedido', {
                     method: 'POST',
@@ -334,35 +347,32 @@
                 console.error(e);
             }
 
-            // 2. Construimos el mensaje de WhatsApp
             let detalleTexto = "";
-            let totalGeneral = 0;
             carrito.forEach(item => {
                 let sub = item.precio * item.cantidad;
-                totalGeneral += sub;
                 detalleTexto += `• ${item.nombre} (x${item.cantidad}) - $${sub.toFixed(2)}%0A`;
             });
 
+            const tasaBCV = document.getElementById('input-tasa-bcv').value;
+            const montoBs = (totalUSDGlobal * parseFloat(tasaBCV)).toFixed(2);
             let infoComprobante = metodoEnvio === 'referencia' ? `Ref. Bancaria: ${referencia}` : `Comprobante enviado en foto`;
 
             let mensaje = `¡Hola! Café-Casa Antigua ☕, deseo confirmar mi pedido:%0A%0A` +
                           `${detalleTexto}%0A` +
-                          `*Total a Pagar:* $${totalGeneral.toFixed(2)}%0A` +
+                          `*Total USD:* $${totalUSDGlobal.toFixed(2)}%0A` +
+                          `*Total Bs:* Bs. ${montoBs} (Tasa: ${tasaBCV})%0A` +
                           `*Método:* Pago Móvil (Bs)%0A` +
                           `*Comprobante:* ${infoComprobante}%0A%0A` +
                           `_Nota: Recuerde que tiene 12 horas para retirar y abonar su pedido en el establecimiento._`;
 
-            // Cerramos modal de pago
             const modalPagoEl = document.getElementById('modalDatosPago');
             const modalPagoObj = bootstrap.Modal.getInstance(modalPagoEl);
             modalPagoObj.hide();
 
-            // Limpiamos carrito
             carrito = [];
             actualizarCarritoUI();
 
-            // Abrimos WhatsApp con el mensaje
-            const numeroWhatsApp = "584121234567"; // Reemplaza con tu número de WhatsApp de la cafetería
+            const numeroWhatsApp = "04162464992";
             window.open(`https://wa.me/${numeroWhatsApp}?text=${mensaje}`, '_blank');
         }
     </script>
