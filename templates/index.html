@@ -1,17 +1,15 @@
-<!-- Vista del panel principal de gestión de inventario, ventas -->
-<!-- y reportes con gráficas estadísticas para el personal. -->
-
+<!-- ========================================== -->
+<!-- APUNTES DEFENSA - INDEX.HTML (VISTA)       -->
+<!-- ========================================== -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión - Café-Casa Antigua</title>
-    <!-- Framework Bootstrap (CSS y JS Bundle incluidos) y Chart.js para visualización de métricas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Estilos visuales con paleta corporativa oscura e institucional */
         body { 
             margin: 0;
             padding: 20px;
@@ -63,7 +61,6 @@
 </head>
 <body>
     <div class="container-fluid">
-        <!-- Barra superior con datos de sesión del usuario logueado -->
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 card-cafe">
             <div>
                 <h3 class="fw-bold text-dorado m-0">Café-Casa Antigua</h3>
@@ -77,7 +74,6 @@
 
         <div class="row g-4 align-items-start">
             <div class="col-lg-8">
-                <!-- Buscador flotante para filtrar el inventario en tiempo real -->
                 <div style="position: sticky; top: 10px; z-index: 1020; background: transparent; padding-bottom: 10px; padding-top: 5px;">
                     <div class="card-cafe p-3 mb-0">
                         <form method="GET" action="/panel" class="input-group" onsubmit="return false;">
@@ -90,7 +86,6 @@
                     </div>
                 </div>
 
-                <!-- Formulario exclusivo para administradores para registrar nuevos productos -->
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3 mb-4 mt-3">
                     <h5 class="text-dorado mb-3">Agregar Nuevo Producto al Inventario</h5>
@@ -140,7 +135,6 @@
                 </div>
                 {% endif %}
 
-                <!-- Cuadrícula de tarjetas de inventario -->
                 <h5 class="text-dorado mb-3">Artículos del Inventario</h5>
                 <div class="row g-3" id="contenedor-inventario">
                     {% for prod in productos %}
@@ -159,12 +153,10 @@
                                 {% endif %}
                             </div>
                             <div>
-                                <!-- Formulario para procesar ventas directas -->
                                 <form action="/vender/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
                                     <input type="number" name="cantidad" value="1" min="1" max="{{ prod.stock }}" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
                                     <button type="submit" class="btn btn-success btn-sm w-100 fw-bold py-1" style="background-color: #198754; border: none; font-size: 0.75rem;">VENDER</button>
                                 </form>
-                                <!-- Formulario para sumar stock al producto -->
                                 <form action="/incrementar/{{ prod.id }}" method="POST" class="d-flex gap-1 mb-1">
                                     <input type="number" name="cantidad" value="1" min="1" class="form-control form-control-sm text-center" style="width: 55px; font-size: 0.8rem;">
                                     <button type="submit" class="btn btn-dorado btn-sm w-100 fw-bold py-1" style="background-color: #1b263b; color: #e5c158; border: 1px solid #523124; font-size: 0.75rem;">+ STOCK</button>
@@ -186,7 +178,6 @@
                 </div>
             </div>
 
-            <!-- Panel lateral de ventas, métricas y reportes PDF -->
             <div class="col-lg-4 d-flex flex-column gap-4" style="position: sticky; top: 20px;">
                 <div class="card-cafe p-3">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -210,7 +201,6 @@
                         <h3 class="text-success fw-bold m-0">${{ "%.2f"|format(total_dinero_hoy) }}</h3>
                     </div>
                     
-                    <!-- Contenedor para Chart.js -->
                     <div class="mb-3 p-2 rounded" style="background-color: #2e1b14; border: 1px solid #523124;">
                         <canvas id="graficaVentas" style="max-height: 180px;"></canvas>
                     </div>
@@ -230,62 +220,6 @@
                         {% endfor %}
                     </div>
                 </div>
-
-                <!-- Botón y Modal con la lista desplegable de Clientes Registrados (Solo visible para Administradores) -->
-                {% if session.get('rol') == 'admin' %}
-                <div class="card-cafe p-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-dorado m-0 fw-bold">GESTIÓN DE USUARIOS</h6>
-                            <p class="text-claro-sub m-0" style="font-size: 0.75rem;">Clientes en la plataforma</p>
-                        </div>
-                        <button type="button" class="btn btn-dorado btn-sm px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#modalClientesRegistrados" style="font-size: 0.8rem;">
-                            👥 Ver Clientes ({{ clientes|length }})
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Modal Emergente de Clientes -->
-                <div class="modal fade" id="modalClientesRegistrados" tabindex="-1" aria-labelledby="modalClientesLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content card-cafe" style="background-color: #3b2219; border: 2px solid #d4af37;">
-                            <div class="modal-header border-bottom border-secondary">
-                                <h5 class="modal-title text-dorado fw-bold" id="modalClientesLabel">👥 Clientes Registrados en la Plataforma</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                                    <table class="table table-dark table-hover align-middle m-0" style="background-color: transparent; font-size: 0.85rem;">
-                                        <thead>
-                                            <tr class="text-warning border-bottom border-secondary">
-                                                <th>ID</th>
-                                                <th>Nombre Completo</th>
-                                                <th>Correo Electrónico</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for c in clientes %}
-                                            <tr style="background-color: #2e1b14;">
-                                                <td class="fw-bold text-dorado">#{{ c.id }}</td>
-                                                <td class="text-light fw-bold">{{ c.nombre }} {{ c.apellido }}</td>
-                                                <td class="text-info">{{ c.correo }}</td>
-                                            </tr>
-                                            {% else %}
-                                            <tr>
-                                                <td colspan="3" class="text-center text-muted py-3">No hay clientes registrados en el sistema.</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="modal-footer border-top border-secondary py-2">
-                                <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cerrar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
 
                 {% if session.get('rol') == 'admin' %}
                 <div class="card-cafe p-3">
@@ -307,10 +241,7 @@
         </div>
     </div>
 
-    <!-- Script de Bootstrap JS (Obligatorio para que funcionen los modales) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Script de filtrado y renderizado de la gráfica con Chart.js -->
     <script>
         const buscadorPanel = document.getElementById('buscador-panel');
         if (buscadorPanel) {
