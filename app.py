@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, make_response
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import pg8000
 import os
@@ -13,7 +14,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 app = Flask(__name__)
-app.secret_key = 'clave_secreta_casa_antigua_2026'
+app.secret_key = os.environ.get('SECRET_KEY', 'clave_secreta_casa_antigua_2026')
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
@@ -106,7 +107,6 @@ def inicializar_bd():
             );
         """)
 
-        # Procedimiento almacenado para ventas
         cursor.execute("""
             CREATE OR REPLACE FUNCTION sp_vender_producto(p_prod_id INT, p_cant INT, p_usuario TEXT)
             RETURNS BOOLEAN AS $$
@@ -117,7 +117,7 @@ def inicializar_bd():
                 v_total NUMERIC(12,2);
             BEGIN
                 SELECT nombre, precio, stock INTO v_nombre, v_precio, v_stock 
-                FROM productos WHERE id = p_prod_id;
+                FROM productos WHERE id = p_prod_id FOR UPDATE;
                 
                 IF v_stock >= p_cant THEN
                     v_total := v_precio * p_cant;
@@ -138,7 +138,6 @@ def inicializar_bd():
             $$ LANGUAGE plpgsql;
         """)
 
-        # Función para expirar automáticamente pedidos mayores a 12 horas
         cursor.execute("""
             CREATE OR REPLACE FUNCTION actualizar_pedidos_vencidos()
             RETURNS VOID AS $$
@@ -246,7 +245,7 @@ def cliente_login():
         cursor.close()
         conexion.close()
         
-        if cliente and cliente[3] == contrasena:
+        if cliente and check_password_hash(cliente[3], contrasena):
             session['cliente_id'] = cliente[0]
             session['cliente_nombre'] = f"{cliente[1]} {cliente[2]}"
             return redirect(url_for('catalogo'))
@@ -268,11 +267,13 @@ def cliente_registro():
             flash("Todos los campos son obligatorios", "danger")
             return redirect(url_for('cliente_registro'))
             
+        contrasena_hash = generate_password_hash(contrasena)
+        
         try:
             conexion = obtener_conexion()
             cursor = conexion.cursor()
             cursor.execute("INSERT INTO clientes (nombre, apellido, correo, contrasena) VALUES (%s, %s, %s, %s);",
-                           (nombre, apellido, correo, contrasena))
+                           (nombre, apellido, correo, contrasena_hash))
             conexion.commit()
             cursor.close()
             conexion.close()
@@ -329,7 +330,6 @@ def panel():
             "cantidad": h[3], "usuario": h[4], "total": float(h[5]) if h[5] is not None else 0
         })
 
-    # Consulta para obtener los clientes registrados (para el panel admin)
     lista_clientes = []
     cursor.execute("SELECT id, nombre, apellido, correo FROM clientes ORDER BY id DESC;")
     for c in cursor.fetchall():
@@ -361,7 +361,6 @@ def pedidos():
     conexion = obtener_conexion()
     cursor = conexion.cursor()
     
-    # Ejecutamos la función para expirar pedidos mayores a 12 horas
     cursor.execute("SELECT actualizar_pedidos_vencidos();")
     conexion.commit()
     
